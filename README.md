@@ -123,8 +123,8 @@ Built as a demo for **FraudGuard** — a fraud detection API for fintech compani
 
 Interested in the production version or want to discuss integration?
 
-📧 your@email.com  
-🔗 linkedin.com/in/yourprofile
+📧 abianaja15@gmail.com
+
 
 ---
 
