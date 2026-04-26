@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>FraudGuard — Killer Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0d1117;color:#e6edf3;font-family:'DM Sans',sans-serif;font-size:13px;overflow:hidden}
+
+/* NAV */
+.nav{background:#161b22;border-bottom:1px solid #30363d;padding:0 12px;height:44px;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.logo{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;margin-right:4px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#ff4757;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,71,87,.6)}50%{box-shadow:0 0 0 5px rgba(255,71,87,0)}}
+.nchip{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:#21262d;border:1px solid #30363d;color:#8b949e;white-space:nowrap}
+.nchip b.r{color:#ff4757}.nchip b.g{color:#3fb950}.nchip b.a{color:#e3b341}.nchip b.b{color:#58a6ff}
+.api-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px;background:#3fb950;animation:blink 3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+/* DEMO BUTTONS */
+.demo-bar{margin-left:auto;display:flex;gap:6px;align-items:center}
+.demo-btn{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:5px 12px;border-radius:5px;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-attack{background:rgba(255,71,87,.12);border-color:rgba(255,71,87,.4);color:#ff4757}
+.btn-attack:hover{background:rgba(255,71,87,.25);box-shadow:0 0 12px rgba(255,71,87,.25)}
+.btn-burst{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.35);color:#a78bfa}
+.btn-burst:hover{background:rgba(167,139,250,.2);box-shadow:0 0 12px rgba(167,139,250,.2)}
+.btn-before{background:rgba(88,166,255,.1);border-color:rgba(88,166,255,.3);color:#58a6ff}
+.btn-before:hover{background:rgba(88,166,255,.2)}
+.start-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:6px 14px;border-radius:5px;cursor:pointer;background:#238636;border:1px solid #2ea043;color:#fff;transition:all .15s;white-space:nowrap;margin-left:4px}
+.start-btn:hover{background:#2ea043}
+.start-btn.pause{background:#b91c1c;border-color:#dc2626}
+
+/* LAYOUT */
+.app{display:flex;flex-direction:column;height:100vh}
+.body{display:grid;grid-template-columns:232px 1fr 296px;flex:1;overflow:hidden;min-height:0}
+
+/* SIDEBAR */
+.sidebar{background:#161b22;border-right:1px solid #30363d;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.s-sec{flex-shrink:0}
+.s-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.mbox{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:7px 9px}
+.mbox.hot{border-color:rgba(255,71,87,.3);background:rgba(255,71,87,.04)}
+.mval{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600}
+.mval.r{color:#ff4757}.mval.g{color:#3fb950}.mval.a{color:#e3b341}.mval.p{color:#a78bfa}
+.mlbl{font-size:10px;color:#484f58;margin-top:1px}
+/* impact */
+.imp{background:linear-gradient(135deg,rgba(63,185,80,.1),rgba(63,185,80,.03));border:1px solid rgba(63,185,80,.2);border-radius:6px;padding:9px 11px;margin-bottom:5px}
+.imp-val{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600;color:#3fb950}
+.imp-sub{font-size:10px;color:#484f58;margin-top:2px}
+.imp2{background:linear-gradient(135deg,rgba(255,71,87,.09),rgba(255,71,87,.02));border:1px solid rgba(255,71,87,.2);border-radius:6px;padding:9px 11px}
+.imp-val2{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600;color:#ff4757}
+/* accounts */
+.acc-row{display:flex;align-items:center;gap:6px;padding:5px 5px;border-radius:5px;cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:2px}
+.acc-row:hover{background:#21262d;border-color:#30363d}
+.av{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.ai{flex:1;min-width:0}
+.ai-id{font-family:'JetBrains Mono',monospace;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-sub{font-size:10px;color:#484f58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-sc{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+.pills{display:flex;flex-wrap:wrap;gap:3px}
+.pill{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 5px;border-radius:3px;border:1px solid #30363d;background:#21262d;color:#8b949e}
+.pill.on{background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.2);color:#ff4757}
+.blocked-row{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:4px;background:rgba(255,71,87,.05);border:1px solid rgba(255,71,87,.12);margin-bottom:3px}
+.blocked-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:#ff4757;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.unblock-btn{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 5px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid rgba(255,71,87,.3);color:#ff4757}
+.unblock-btn:hover{background:rgba(255,71,87,.12)}
+
+/* STREAM */
+.stream{display:flex;flex-direction:column;overflow:hidden}
+.s-hdr{background:#161b22;border-bottom:1px solid #30363d;padding:6px 12px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.s-hdr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;text-transform:uppercase;letter-spacing:.8px}
+.s-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;color:#4f6ef7;background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.2);padding:2px 7px;border-radius:3px}
+.api-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:#3fb950;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.18);padding:2px 8px;border-radius:3px;margin-left:auto;display:flex;align-items:center;gap:4px}
+.col-hdr{display:grid;grid-template-columns:78px 95px 1fr 98px 72px 62px;gap:4px;padding:4px 10px 5px;border-bottom:1px solid #21262d;flex-shrink:0}
+.ch{font-size:10px;font-family:'JetBrains Mono',monospace;color:#484f58;text-transform:uppercase;letter-spacing:.4px}
+.tx-rows{overflow-y:auto;flex:1;padding:3px 4px}
+.tx{display:grid;grid-template-columns:78px 95px 1fr 98px 72px 62px;gap:4px;align-items:center;padding:5px 7px;border-radius:5px;border:1px solid transparent;cursor:pointer;transition:all .1s;margin-bottom:2px}
+.tx:hover,.tx.sel{background:#161b22;border-color:#30363d}
+.tx.sel{border-color:#4f6ef7}
+.tx.flag{background:rgba(255,71,87,.04);border-color:rgba(255,71,87,.14)}
+.tx.drama{animation:dramatx .4s ease;border-color:rgba(255,71,87,.4)!important;background:rgba(255,71,87,.08)!important}
+@keyframes dramatx{0%{background:rgba(255,71,87,.35);border-color:#ff4757}100%{background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.4)}}
+.tx.new{animation:slid .2s ease}
+@keyframes slid{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.t-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58}
+.t-acc{font-family:'JetBrains Mono',monospace;font-size:10px;color:#79c0ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-desc{font-size:11px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-amt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-align:right}
+.t-type{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 4px;border-radius:3px;text-align:center}
+.tt{background:rgba(30,144,255,.1);color:#58a6ff;border:1px solid rgba(30,144,255,.18)}
+.tp{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.18)}
+.tu{background:rgba(63,185,80,.1);color:#3fb950;border:1px solid rgba(63,185,80,.18)}
+.td{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.18)}
+.tc{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.18)}
+.sc{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:2px 4px;border-radius:3px;text-align:center}
+.sc-c{background:rgba(255,71,87,.15);color:#ff4757;border:1px solid rgba(255,71,87,.3)}
+.sc-h{background:rgba(227,179,65,.12);color:#e3b341;border:1px solid rgba(227,179,65,.25)}
+.sc-l{background:rgba(63,185,80,.1);color:#3fb950;border:1px solid rgba(63,185,80,.18)}
+.blk-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 4px;border-radius:2px;background:rgba(255,71,87,.2);color:#ff4757;border:1px solid rgba(255,71,87,.3);margin-left:3px}
+.tx.blocked-acc{opacity:.55;background:rgba(255,71,87,.03)!important;border-color:rgba(255,71,87,.1)!important}
+.tx.blocked-acc .t-acc{color:#ff4757;text-decoration:line-through}
+
+/* DETAIL */
+.detail{background:#161b22;border-left:1px solid #30363d;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:10px}
+.d-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;text-transform:uppercase;letter-spacing:1px}
+.gauge-wrap{display:flex;align-items:center;gap:11px;background:#0d1117;border:1px solid #30363d;border-radius:7px;padding:10px 12px}
+.gauge-ring{position:relative;width:62px;height:62px;flex-shrink:0}
+.gauge-ring svg{width:62px;height:62px}
+.gauge-inner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.gauge-num{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600;line-height:1}
+.gauge-sub{font-size:9px;color:#484f58;margin-top:1px}
+.score-meta{flex:1;min-width:0}
+.risk-band{display:flex;gap:1px;height:4px;border-radius:3px;overflow:hidden;margin-top:5px}
+.band-seg{flex:1;border-radius:2px}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #21262d}
+.irow:last-child{border:none}
+.ik{font-size:11px;color:#484f58}
+.iv{font-family:'JetBrains Mono',monospace;font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:155px}
+/* story */
+.story{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:9px 11px}
+.story-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px}
+.sstep{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;position:relative}
+.sstep:not(:last-child)::after{content:'';position:absolute;left:10px;top:21px;bottom:-8px;width:1px;background:#21262d}
+.sdot{width:21px;height:21px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;background:#0d1117}
+.sbody{flex:1;padding-top:1px}
+.stime{font-family:'JetBrains Mono',monospace;font-size:9px;color:#484f58}
+.stxt{font-size:11px;color:#8b949e;line-height:1.4;margin-top:1px}
+/* conf bars */
+.crow{margin-bottom:7px}
+.chead{display:flex;justify-content:space-between;margin-bottom:2px}
+.cname{font-size:11px;color:#8b949e}
+.cpct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.cbar{height:5px;background:#21262d;border-radius:3px;overflow:hidden}
+.cfill{height:100%;border-radius:3px;transition:width .5s}
+.cpts{font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;margin-top:1px}
+/* actions */
+.act{display:flex;flex-direction:column;gap:5px}
+.abtn{padding:7px 11px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;text-align:center;transition:all .12s}
+.ab-r{background:rgba(255,71,87,.1);border-color:rgba(255,71,87,.3);color:#ff4757}.ab-r:hover{background:rgba(255,71,87,.2)}
+.ab-a{background:rgba(227,179,65,.1);border-color:rgba(227,179,65,.25);color:#e3b341}.ab-a:hover{background:rgba(227,179,65,.2)}
+.ab-g{background:rgba(63,185,80,.09);border-color:rgba(63,185,80,.2);color:#3fb950}.ab-g:hover{background:rgba(63,185,80,.18)}
+.ab-row{display:flex;gap:5px}.ab-row .abtn{flex:1}
+
+/* ═══════════ BEFORE/AFTER OVERLAY ═══════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:flex;align-items:center;justify-content:center;animation:ofade .2s ease}
+@keyframes ofade{from{opacity:0}to{opacity:1}}
+.ba-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:28px 30px;width:560px;max-height:88vh;overflow-y:auto}
+.ba-title{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e6edf3;margin-bottom:4px}
+.ba-sub{font-size:13px;color:#8b949e;margin-bottom:22px}
+.ba-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ba-col{border-radius:8px;padding:16px}
+.ba-col.bad{background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.22)}
+.ba-col.good{background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.22)}
+.ba-col-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.ba-col.bad .ba-col-title{color:#ff4757}
+.ba-col.good .ba-col-title{color:#3fb950}
+.ba-stat{margin-bottom:8px}
+.ba-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600}
+.ba-col.bad .ba-val{color:#ff4757}
+.ba-col.good .ba-val{color:#3fb950}
+.ba-lbl{font-size:11px;color:#484f58}
+.ba-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.ba-row:last-child{border:none}
+.ba-close{width:100%;padding:10px;background:#238636;border:1px solid #2ea043;color:#fff;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
+.ba-close:hover{background:#2ea043}
+
+/* ═══════════ MODALS ═══════════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:flex;align-items:center;justify-content:center;animation:mfade .18s}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+.modal{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 22px;width:340px;animation:mslide .18s}
+@keyframes mslide{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-size:14px;font-weight:600;margin-bottom:5px}
+.modal-sub{font-size:12px;color:#8b949e;margin-bottom:13px;line-height:1.5}
+.modal-acc{font-family:'JetBrains Mono',monospace;font-size:12px;color:#ff4757;background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.2);padding:7px 10px;border-radius:5px;margin-bottom:13px;word-break:break-all}
+.modal-acc.ok{color:#3fb950;background:rgba(63,185,80,.07);border-color:rgba(63,185,80,.2)}
+.modal-acc.warn{color:#e3b341;background:rgba(227,179,65,.07);border-color:rgba(227,179,65,.2)}
+.mactions{display:flex;gap:7px;justify-content:flex-end}
+.mbtn{font-size:12px;font-weight:500;padding:7px 14px;border-radius:5px;cursor:pointer;border:1px solid;transition:all .12s;font-family:'DM Sans',sans-serif}
+.mbtn-cancel{background:transparent;border-color:#30363d;color:#8b949e}.mbtn-cancel:hover{background:#21262d}
+.mbtn-r{background:rgba(255,71,87,.12);border-color:rgba(255,71,87,.35);color:#ff4757}.mbtn-r:hover{background:rgba(255,71,87,.25)}
+.mbtn-g{background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3);color:#3fb950}.mbtn-g:hover{background:rgba(63,185,80,.2)}
+.mbtn-a{background:rgba(227,179,65,.1);border-color:rgba(227,179,65,.3);color:#e3b341}.mbtn-a:hover{background:rgba(227,179,65,.2)}
+textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-family:'DM Sans',sans-serif;font-size:12px;padding:8px;resize:none;height:56px;outline:none;margin-bottom:13px}
+textarea:focus{border-color:#484f58}
+
+/* ATTACK FLASH */
+.attack-flash{position:fixed;inset:0;background:rgba(255,71,87,.08);z-index:199;pointer-events:none;animation:aflash .6s ease forwards}
+@keyframes aflash{0%{opacity:1}100%{opacity:0}}
+
+/* TOASTS */
+.toast-wrap{position:fixed;top:52px;right:12px;z-index:500;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.toast{background:#1a1f2e;border:1px solid rgba(255,71,87,.35);border-radius:6px;padding:8px 11px;min-width:210px;max-width:270px;animation:tin .2s;pointer-events:all;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+
+/* AUDIT */
+.audit-entry{padding:4px 0;border-bottom:1px solid #21262d;font-size:11px}
+.audit-entry:last-child{border:none}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="nav">
+  <div class="logo"><div class="pulse"></div>FraudGuard</div>
+  <div class="nchip"><span class="api-dot"></span>API · fintech-client-01</div>
+  <div class="nchip">Tx: <b class="g" id="nTotal">0</b></div>
+  <div class="nchip">Flagged: <b class="a" id="nFlag">0</b></div>
+  <div class="nchip">Blocked: <b class="r" id="nBlock">0</b></div>
+  <div class="nchip">Avg: <b class="b" id="nAvg">—</b></div>
+  <div class="demo-bar">
+    <button class="demo-btn btn-attack" onclick="triggerAttack()">🔴 Simulate Attack</button>
+    <button class="demo-btn btn-burst" onclick="triggerBurst()">⚡ Fraud Burst</button>
+    <button class="demo-btn btn-before" onclick="showBeforeAfter()">📊 Before vs After</button>
+    <button class="start-btn" id="startBtn" onclick="toggleSim()">▶ START</button>
+  </div>
+</div>
+
+<div class="body">
+<div class="sidebar">
+  <div class="s-sec">
+    <div class="s-title">Overview</div>
+    <div class="metrics">
+      <div class="mbox"><div class="mval" id="mTotal">0</div><div class="mlbl">total tx</div></div>
+      <div class="mbox hot"><div class="mval r" id="mFlag">0</div><div class="mlbl">flagged</div></div>
+      <div class="mbox"><div class="mval a" id="mBlock">0</div><div class="mlbl">auto-blocked</div></div>
+      <div class="mbox"><div class="mval p" id="mFraud">0</div><div class="mlbl">real fraud</div></div>
+    </div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title">💰 Impact</div>
+    <div class="imp"><div class="imp-val" id="impSaved">$0</div><div class="imp-sub">loss prevented</div></div>
+    <div class="imp2"><div class="imp-val2" id="impStopped">0</div><div class="imp-sub" style="color:#484f58">fraud cases stopped</div></div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title">High-risk accounts</div>
+    <div id="accList"><div style="font-size:11px;color:#484f58">Start simulation...</div></div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title">Active patterns</div>
+    <div class="pills" id="pillList"></div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title" style="color:#ff4757">🔒 Blocked (<span id="blockedCount">0</span>)</div>
+    <div id="blockedList"><div style="font-size:11px;color:#484f58">None yet</div></div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title" style="color:#e3b341">⏳ Review (<span id="reviewCount">0</span>)</div>
+    <div id="reviewList"><div style="font-size:11px;color:#484f58">Empty</div></div>
+  </div>
+  <div class="s-sec">
+    <div class="s-title" style="color:#58a6ff">📋 Audit</div>
+    <div id="auditLog"></div>
+  </div>
+</div>
+
+<div class="stream">
+  <div class="s-hdr">
+    <div class="s-hdr-lbl">Transaction stream</div>
+    <div class="s-cnt" id="sCount">0 events</div>
+    <div class="api-badge"><span class="api-dot" style="width:5px;height:5px;margin:0"></span>live · AIML 6.3M dataset</div>
+  </div>
+  <div class="col-hdr">
+    <div class="ch">ID</div><div class="ch">Origin</div><div class="ch">→ Dest</div>
+    <div class="ch" style="text-align:right">Amount</div><div class="ch">Type</div><div class="ch">Risk</div>
+  </div>
+  <div class="tx-rows" id="txRows">
+    <div id="emptyMsg" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;color:#484f58;gap:8px;font-size:12px">
+      <div style="font-size:30px;opacity:.2">◎</div>
+      <div>Press <b style="color:#3fb950">▶ START</b> or use demo buttons above</div>
+    </div>
+  </div>
+</div>
+
+<div class="detail" id="detailPanel">
+  <div class="d-title">Transaction detail</div>
+  <div id="detailEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:#484f58;gap:8px;font-size:12px">
+    <div style="font-size:28px;opacity:.2">⊡</div><div>Click any transaction</div>
+  </div>
+</div>
+</div><!-- body -->
+</div><!-- app -->
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="mBlock" style="display:none" onclick="if(event.target===this)closeM('mBlock')">
+  <div class="modal"><div class="modal-title">🔒 Block Account</div>
+  <div class="modal-sub">Semua transaksi dari akun ini akan ditolak otomatis.</div>
+  <div class="modal-acc" id="mBlockAcc">—</div>
+  <div style="font-size:11px;color:#8b949e;margin-bottom:13px" id="mBlockInfo"></div>
+  <div class="mactions"><button class="mbtn mbtn-cancel" onclick="closeM('mBlock')">Cancel</button>
+  <button class="mbtn mbtn-r" onclick="confirmBlock()">🔒 Block</button></div></div>
+</div>
+<div class="modal-overlay" id="mUnblock" style="display:none" onclick="if(event.target===this)closeM('mUnblock')">
+  <div class="modal"><div class="modal-title">🔓 Unblock Account</div>
+  <div class="modal-sub">Akun akan diaktifkan kembali.</div>
+  <div class="modal-acc ok" id="mUnblockAcc">—</div>
+  <div class="mactions"><button class="mbtn mbtn-cancel" onclick="closeM('mUnblock')">Cancel</button>
+  <button class="mbtn mbtn-g" onclick="confirmUnblock()">🔓 Unblock</button></div></div>
+</div>
+<div class="modal-overlay" id="mReview" style="display:none" onclick="if(event.target===this)closeM('mReview')">
+  <div class="modal"><div class="modal-title">⏳ Send to Review</div>
+  <div class="modal-sub">Akun tetap aktif selama review.</div>
+  <div class="modal-acc warn" id="mReviewAcc">—</div>
+  <div style="font-size:11px;color:#484f58;margin-bottom:5px">Catatan (opsional)</div>
+  <textarea id="reviewNote" placeholder="Tambah catatan..."></textarea>
+  <div class="mactions"><button class="mbtn mbtn-cancel" onclick="closeM('mReview')">Cancel</button>
+  <button class="mbtn mbtn-a" onclick="confirmReview()">⏳ Send</button></div></div>
+</div>
+<!-- BEFORE/AFTER OVERLAY -->
+<div id="baOverlay" style="display:none"></div>
+
+<script>
+const REAL_DATA = [{"step":"1","type":"TRANSFER","amount":"181.0","nameOrig":"C1305486145","oldbalanceOrg":"181.0","newbalanceOrig":"0.0","nameDest":"C553264065","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"181.0","nameOrig":"C840083671","oldbalanceOrg":"181.0","newbalanceOrig":"0.0","nameDest":"C38997010","oldbalanceDest":"21182.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"3","type":"TRANSFER","amount":"22877.0","nameOrig":"C1247938090","oldbalanceOrg":"22877.0","newbalanceOrig":"0.0","nameDest":"C1002031672","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"3","type":"CASH_OUT","amount":"22877.0","nameOrig":"C2126545173","oldbalanceOrg":"22877.0","newbalanceOrig":"0.0","nameDest":"C573200870","oldbalanceDest":"0.0","newbalanceDest":"22877.0","isFraud":"1"},{"step":"6","type":"CASH_OUT","amount":"17246.0","nameOrig":"C1484518113","oldbalanceOrg":"17246.0","newbalanceOrig":"0.0","nameDest":"C978609035","oldbalanceDest":"0.0","newbalanceDest":"17246.0","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"30521.02","nameOrig":"C903383636","oldbalanceOrg":"30521.02","newbalanceOrig":"0.0","nameDest":"C904300960","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"5","type":"TRANSFER","amount":"60726.57","nameOrig":"C383882703","oldbalanceOrg":"60726.57","newbalanceOrig":"0.0","nameDest":"C1807010830","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"TRANSFER","amount":"1096187.24","nameOrig":"C1093223281","oldbalanceOrg":"1096187.24","newbalanceOrig":"0.0","nameDest":"C2063275841","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"5","type":"CASH_OUT","amount":"60726.57","nameOrig":"C840095827","oldbalanceOrg":"60726.57","newbalanceOrig":"0.0","nameDest":"C803116137","oldbalanceDest":"1.301050278E7","newbalanceDest":"1.307122935E7","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"33332.86","nameOrig":"C2025652936","oldbalanceOrg":"33332.86","newbalanceOrig":"0.0","nameDest":"C1662235713","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"86070.17","nameOrig":"C1699873763","oldbalanceOrg":"86070.17","newbalanceOrig":"0.0","nameDest":"C560041895","oldbalanceDest":"0.0","newbalanceDest":"86070.17","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"35063.63","nameOrig":"C1364127192","oldbalanceOrg":"35063.63","newbalanceOrig":"0.0","nameDest":"C1136419747","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"1.0E7","nameOrig":"C351297720","oldbalanceOrg":"1.0E7","newbalanceOrig":"0.0","nameDest":"C766681183","oldbalanceDest":"0.0","newbalanceDest":"9941904.21","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"169941.73","nameOrig":"C2026325575","oldbalanceOrg":"169941.73","newbalanceOrig":"0.0","nameDest":"C1394526584","oldbalanceDest":"0.0","newbalanceDest":"169941.73","isFraud":"1"},{"step":"5","type":"TRANSFER","amount":"120074.73","nameOrig":"C1409933277","oldbalanceOrg":"120074.73","newbalanceOrig":"0.0","nameDest":"C162114152","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"2806.0","nameOrig":"C2101527076","oldbalanceOrg":"2806.0","newbalanceOrig":"0.0","nameDest":"C1007251739","oldbalanceDest":"26202.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"25975.86","nameOrig":"C864622150","oldbalanceOrg":"25975.86","newbalanceOrig":"0.0","nameDest":"C41792607","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"416001.33","nameOrig":"C749981943","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C667346055","oldbalanceDest":"102.0","newbalanceDest":"9291619.62","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"235238.66","nameOrig":"C1499825229","oldbalanceOrg":"235238.66","newbalanceOrig":"0.0","nameDest":"C2100440237","oldbalanceDest":"0.0","newbalanceDest":"235238.66","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"132842.64","nameOrig":"C13692003","oldbalanceOrg":"4499.08","newbalanceOrig":"0.0","nameDest":"C297927961","oldbalanceDest":"0.0","newbalanceDest":"132842.64","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"1277212.77","nameOrig":"C1334405552","oldbalanceOrg":"1277212.77","newbalanceOrig":"0.0","nameDest":"C431687661","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"CASH_OUT","amount":"963532.14","nameOrig":"C430329518","oldbalanceOrg":"963532.14","newbalanceOrig":"0.0","nameDest":"C991505714","oldbalanceDest":"132382.57","newbalanceDest":"1095914.71","isFraud":"1"},{"step":"6","type":"CASH_OUT","amount":"33332.86","nameOrig":"C685428529","oldbalanceOrg":"33332.86","newbalanceOrig":"0.0","nameDest":"C1626759869","oldbalanceDest":"31002.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"10565.0","nameOrig":"C777407608","oldbalanceOrg":"10565.0","newbalanceOrig":"0.0","nameDest":"C1790657739","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"TRANSFER","amount":"2930418.44","nameOrig":"C2047521920","oldbalanceOrg":"2930418.44","newbalanceOrig":"0.0","nameDest":"C449261773","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"CASH_OUT","amount":"1096187.24","nameOrig":"C77163673","oldbalanceOrg":"1096187.24","newbalanceOrig":"0.0","nameDest":"C644345897","oldbalanceDest":"0.0","newbalanceDest":"1096187.24","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"1277212.77","nameOrig":"C467632528","oldbalanceOrg":"1277212.77","newbalanceOrig":"0.0","nameDest":"C716083600","oldbalanceDest":"0.0","newbalanceDest":"2444985.19","isFraud":"1"},{"step":"2","type":"TRANSFER","amount":"963532.14","nameOrig":"C1440057381","oldbalanceOrg":"963532.14","newbalanceOrig":"0.0","nameDest":"C268086000","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"CASH_OUT","amount":"14949.84","nameOrig":"C395257482","oldbalanceOrg":"14949.84","newbalanceOrig":"0.0","nameDest":"C1032986144","oldbalanceDest":"18161.79","newbalanceDest":"33111.63","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"2806.0","nameOrig":"C1420196421","oldbalanceOrg":"2806.0","newbalanceOrig":"0.0","nameDest":"C972765878","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"6","type":"CASH_OUT","amount":"17320.91","nameOrig":"C436661284","oldbalanceOrg":"17320.91","newbalanceOrig":"0.0","nameDest":"C522173599","oldbalanceDest":"6244.44","newbalanceDest":"0.0","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"17320.91","nameOrig":"C788790720","oldbalanceOrg":"17320.91","newbalanceOrig":"0.0","nameDest":"C1589547066","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"TRANSFER","amount":"13707.11","nameOrig":"C17222024","oldbalanceOrg":"13707.11","newbalanceOrig":"0.0","nameDest":"C410033330","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"13707.11","nameOrig":"C556223230","oldbalanceOrg":"13707.11","newbalanceOrig":"0.0","nameDest":"C2094777811","oldbalanceDest":"0.0","newbalanceDest":"13707.11","isFraud":"1"},{"step":"3","type":"TRANSFER","amount":"10539.37","nameOrig":"C1134864869","oldbalanceOrg":"10539.37","newbalanceOrig":"0.0","nameDest":"C118648358","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"3","type":"CASH_OUT","amount":"10539.37","nameOrig":"C1984954272","oldbalanceOrg":"10539.37","newbalanceOrig":"0.0","nameDest":"C124540047","oldbalanceDest":"0.0","newbalanceDest":"10539.37","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"35063.63","nameOrig":"C1635772897","oldbalanceOrg":"35063.63","newbalanceOrig":"0.0","nameDest":"C1983025922","oldbalanceDest":"31140.0","newbalanceDest":"7550.03","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"25071.46","nameOrig":"C1275464847","oldbalanceOrg":"25071.46","newbalanceOrig":"0.0","nameDest":"C1364913072","oldbalanceDest":"9083.76","newbalanceDest":"34155.22","isFraud":"1"},{"step":"5","type":"TRANSFER","amount":"10119.47","nameOrig":"C1775746074","oldbalanceOrg":"10119.47","newbalanceOrig":"0.0","nameDest":"C746009679","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"5","type":"CASH_OUT","amount":"10119.47","nameOrig":"C213063852","oldbalanceOrg":"10119.47","newbalanceOrig":"0.0","nameDest":"C922511709","oldbalanceDest":"0.0","newbalanceDest":"10119.47","isFraud":"1"},{"step":"2","type":"TRANSFER","amount":"14949.84","nameOrig":"C140702728","oldbalanceOrg":"14949.84","newbalanceOrig":"0.0","nameDest":"C634210724","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"2930418.44","nameOrig":"C2044690596","oldbalanceOrg":"2930418.44","newbalanceOrig":"0.0","nameDest":"C932583850","oldbalanceDest":"3616012.1","newbalanceDest":"6963508.84","isFraud":"1"},{"step":"6","type":"CASH_OUT","amount":"216422.0","nameOrig":"C1547714604","oldbalanceOrg":"216422.0","newbalanceOrig":"0.0","nameDest":"C7881234","oldbalanceDest":"10097.0","newbalanceDest":"48630.5","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"216422.0","nameOrig":"C666642000","oldbalanceOrg":"216422.0","newbalanceOrig":"0.0","nameDest":"C1315078366","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"TRANSFER","amount":"86070.17","nameOrig":"C1844941220","oldbalanceOrg":"86070.17","newbalanceOrig":"0.0","nameDest":"C1191544932","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"TRANSFER","amount":"18627.02","nameOrig":"C1375503918","oldbalanceOrg":"18627.02","newbalanceOrig":"0.0","nameDest":"C234430897","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"235238.66","nameOrig":"C1872047468","oldbalanceOrg":"235238.66","newbalanceOrig":"0.0","nameDest":"C116289363","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"4","type":"CASH_OUT","amount":"13707.11","nameOrig":"C556223230","oldbalanceOrg":"13707.11","newbalanceOrig":"0.0","nameDest":"C2094777811","oldbalanceDest":"0.0","newbalanceDest":"13707.11","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"20128.0","nameOrig":"C137533655","oldbalanceOrg":"20128.0","newbalanceOrig":"0.0","nameDest":"C1848415041","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"20128.0","nameOrig":"C1118430673","oldbalanceOrg":"20128.0","newbalanceOrig":"0.0","nameDest":"C339924917","oldbalanceDest":"6268.0","newbalanceDest":"12145.85","isFraud":"1"},{"step":"6","type":"CASH_OUT","amount":"26768.5","nameOrig":"C682812632","oldbalanceOrg":"26768.5","newbalanceOrig":"0.0","nameDest":"C256417920","oldbalanceDest":"101976.0","newbalanceDest":"128744.5","isFraud":"1"},{"step":"6","type":"TRANSFER","amount":"26768.5","nameOrig":"C457596841","oldbalanceOrg":"26768.5","newbalanceOrig":"0.0","nameDest":"C1956477953","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"5","type":"CASH_OUT","amount":"120074.73","nameOrig":"C1174000532","oldbalanceOrg":"120074.73","newbalanceOrig":"0.0","nameDest":"C410033330","oldbalanceDest":"0.0","newbalanceDest":"120074.73","isFraud":"1"},{"step":"4","type":"TRANSFER","amount":"1.0E7","nameOrig":"C7162498","oldbalanceOrg":"1.293041844E7","newbalanceOrig":"2930418.44","nameDest":"C945327594","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"3","type":"CASH_OUT","amount":"10539.37","nameOrig":"C1984954272","oldbalanceOrg":"10539.37","newbalanceOrig":"0.0","nameDest":"C124540047","oldbalanceDest":"0.0","newbalanceDest":"10539.37","isFraud":"1"},{"step":"2","type":"TRANSFER","amount":"963532.14","nameOrig":"C1440057381","oldbalanceOrg":"963532.14","newbalanceOrig":"0.0","nameDest":"C268086000","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"2","type":"CASH_OUT","amount":"1096187.24","nameOrig":"C77163673","oldbalanceOrg":"1096187.24","newbalanceOrig":"0.0","nameDest":"C644345897","oldbalanceDest":"0.0","newbalanceDest":"1096187.24","isFraud":"1"},{"step":"1","type":"TRANSFER","amount":"1277212.77","nameOrig":"C1334405552","oldbalanceOrg":"1277212.77","newbalanceOrig":"0.0","nameDest":"C431687661","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"1"},{"step":"1","type":"CASH_OUT","amount":"1277212.77","nameOrig":"C467632528","oldbalanceOrg":"1277212.77","newbalanceOrig":"0.0","nameDest":"C716083600","oldbalanceDest":"0.0","newbalanceDest":"2444985.19","isFraud":"1"},{"step":"1","type":"PAYMENT","amount":"9839.64","nameOrig":"C1231006815","oldbalanceOrg":"170136.0","newbalanceOrig":"160296.36","nameDest":"M1979787155","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1864.28","nameOrig":"C1666544295","oldbalanceOrg":"21249.0","newbalanceOrig":"19384.72","nameDest":"M2044282225","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"335416.51","nameOrig":"C743778731","oldbalanceOrg":"144478.0","newbalanceOrig":"0.0","nameDest":"C575335780","oldbalanceDest":"295.0","newbalanceDest":"52415.15","isFraud":"0"},{"step":"1","type":"DEBIT","amount":"5149.66","nameOrig":"C1955990522","oldbalanceOrg":"4782.0","newbalanceOrig":"0.0","nameDest":"C1330106945","oldbalanceDest":"52752.0","newbalanceDest":"24044.18","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5086.48","nameOrig":"C598357562","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M1593224710","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"3454.08","nameOrig":"C686349795","oldbalanceOrg":"9031.96","newbalanceOrig":"5577.88","nameDest":"M1831010686","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5213.25","nameOrig":"C1221981006","oldbalanceOrg":"36380.0","newbalanceOrig":"31166.75","nameDest":"M264394929","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"DEBIT","amount":"3058.8","nameOrig":"C1694784135","oldbalanceOrg":"18138.0","newbalanceOrig":"15079.2","nameDest":"C801197928","oldbalanceDest":"11054.0","newbalanceDest":"8917.54","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1876.44","nameOrig":"C1509309988","oldbalanceOrg":"182.0","newbalanceOrig":"0.0","nameDest":"M1643141512","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"9920.52","nameOrig":"C764826684","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M1940055334","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"12986.61","nameOrig":"C807322507","oldbalanceOrg":"23350.0","newbalanceOrig":"10363.39","nameDest":"M396485834","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"82940.31","nameOrig":"C1528834618","oldbalanceOrg":"3017.87","newbalanceOrig":"0.0","nameDest":"C476800120","oldbalanceDest":"132372.0","newbalanceDest":"49864.36","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5885.56","nameOrig":"C840514538","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M1804441305","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5392.75","nameOrig":"C1878413714","oldbalanceOrg":"50757.0","newbalanceOrig":"45364.25","nameDest":"M769132147","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"TRANSFER","amount":"679502.24","nameOrig":"C722417467","oldbalanceOrg":"290.0","newbalanceOrig":"0.0","nameDest":"C451111351","oldbalanceDest":"171866.0","newbalanceDest":"3940085.21","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"28404.6","nameOrig":"C2091072548","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C1282788025","oldbalanceDest":"51744.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"244.87","nameOrig":"C544386226","oldbalanceOrg":"257978.49","newbalanceOrig":"257733.62","nameDest":"M1357700757","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"2998.04","nameOrig":"C71802912","oldbalanceOrg":"12030.0","newbalanceOrig":"9031.96","nameDest":"M2134271532","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"7823.46","nameOrig":"C260084831","oldbalanceOrg":"998.0","newbalanceOrig":"0.0","nameDest":"M267814113","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"TRANSFER","amount":"62610.8","nameOrig":"C1976401987","oldbalanceOrg":"79114.0","newbalanceOrig":"16503.2","nameDest":"C1937962514","oldbalanceDest":"517.0","newbalanceDest":"8383.29","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"38.66","nameOrig":"C343345308","oldbalanceOrg":"16174.0","newbalanceOrig":"16135.34","nameDest":"M1714688478","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5307.88","nameOrig":"C1768242710","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M1971783162","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"3448.92","nameOrig":"C2103763750","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M335107734","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"3099.97","nameOrig":"C249177573","oldbalanceOrg":"20771.0","newbalanceOrig":"17671.03","nameDest":"M2096539129","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"5346.89","nameOrig":"C512549200","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C248609774","oldbalanceDest":"652637.0","newbalanceDest":"6453430.91","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1563.82","nameOrig":"C761750706","oldbalanceOrg":"450.0","newbalanceOrig":"0.0","nameDest":"M1731217984","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"2204.04","nameOrig":"C1615801298","oldbalanceOrg":"586.0","newbalanceOrig":"0.0","nameDest":"M490391704","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1718.29","nameOrig":"C603658030","oldbalanceOrg":"117811.0","newbalanceOrig":"116092.71","nameDest":"M1689924104","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1915.43","nameOrig":"C822087264","oldbalanceOrg":"11450.0","newbalanceOrig":"9534.57","nameDest":"M30699728","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"47458.86","nameOrig":"C527211736","oldbalanceOrg":"209534.84","newbalanceOrig":"162075.98","nameDest":"C2096057945","oldbalanceDest":"52120.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"4316.2","nameOrig":"C1423768154","oldbalanceOrg":"10999.0","newbalanceOrig":"6682.8","nameDest":"M404222443","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"TRANSFER","amount":"147543.1","nameOrig":"C12905860","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C1359044626","oldbalanceDest":"223220.0","newbalanceDest":"16518.36","isFraud":"0"},{"step":"1","type":"DEBIT","amount":"5337.77","nameOrig":"C712410124","oldbalanceOrg":"41720.0","newbalanceOrig":"36382.23","nameDest":"C195600860","oldbalanceDest":"41898.0","newbalanceDest":"40348.79","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"11668.14","nameOrig":"C2048537720","oldbalanceOrg":"41554.0","newbalanceOrig":"29885.86","nameDest":"M1230701703","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"14121.82","nameOrig":"C69062746","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C100555887","oldbalanceDest":"52679.0","newbalanceDest":"10963.66","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"50101.88","nameOrig":"C1740826931","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C97730845","oldbalanceDest":"67684.0","newbalanceDest":"9940339.29","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"5281.48","nameOrig":"C1440738283","oldbalanceOrg":"152019.0","newbalanceOrig":"146737.52","nameDest":"M1849015357","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1203.44","nameOrig":"C922807452","oldbalanceOrg":"29941.0","newbalanceOrig":"28737.56","nameDest":"M33563464","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"8009.09","nameOrig":"C1053967012","oldbalanceOrg":"10968.0","newbalanceOrig":"2958.91","nameDest":"M295304806","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"25.12","nameOrig":"C1257299717","oldbalanceOrg":"61663.0","newbalanceOrig":"61637.88","nameDest":"M1474957626","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"9478.39","nameOrig":"C1671590089","oldbalanceOrg":"116494.0","newbalanceOrig":"107015.61","nameDest":"M58488213","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"TRANSFER","amount":"42712.39","nameOrig":"C283039401","oldbalanceOrg":"10363.39","newbalanceOrig":"0.0","nameDest":"C1330106945","oldbalanceDest":"57901.66","newbalanceDest":"24044.18","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"11633.76","nameOrig":"C1716932897","oldbalanceOrg":"10127.0","newbalanceOrig":"0.0","nameDest":"M801569151","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"2599.46","nameOrig":"C885910946","oldbalanceOrg":"874042.26","newbalanceOrig":"871442.79","nameDest":"M1860591867","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"3295.19","nameOrig":"C711197015","oldbalanceOrg":"233633.0","newbalanceOrig":"230337.81","nameDest":"M1384454980","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"2330.64","nameOrig":"C816944408","oldbalanceOrg":"203543.0","newbalanceOrig":"201212.36","nameDest":"M909132503","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"1063.53","nameOrig":"C1406206626","oldbalanceOrg":"83084.0","newbalanceOrig":"82020.47","nameDest":"M1816522350","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"6440.78","nameOrig":"C1161148117","oldbalanceOrg":"2192.0","newbalanceOrig":"0.0","nameDest":"M516875052","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"TRANSFER","amount":"11996.58","nameOrig":"C605982374","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"C1225616405","oldbalanceDest":"40255.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"CASH_OUT","amount":"94253.33","nameOrig":"C1718906711","oldbalanceOrg":"25203.05","newbalanceOrig":"0.0","nameDest":"C977993101","oldbalanceDest":"99773.0","newbalanceDest":"965870.05","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"2970.97","nameOrig":"C46941357","oldbalanceOrg":"38071.06","newbalanceOrig":"35100.09","nameDest":"M1152606315","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"7861.64","nameOrig":"C1912850431","oldbalanceOrg":"176087.23","newbalanceOrig":"168225.59","nameDest":"M633326333","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"DEBIT","amount":"9302.79","nameOrig":"C1566511282","oldbalanceOrg":"11299.0","newbalanceOrig":"1996.21","nameDest":"C1973538135","oldbalanceDest":"29832.0","newbalanceDest":"16896.7","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"13875.98","nameOrig":"C484199463","oldbalanceOrg":"15818.0","newbalanceOrig":"1942.02","nameDest":"M2008106788","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"24213.67","nameOrig":"C1238616099","oldbalanceOrg":"0.0","newbalanceOrig":"0.0","nameDest":"M70695990","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"},{"step":"1","type":"PAYMENT","amount":"871.75","nameOrig":"C1003206025","oldbalanceOrg":"19869.0","newbalanceOrig":"18997.25","nameDest":"M989889899","oldbalanceDest":"0.0","newbalanceDest":"0.0","isFraud":"0"}];
+
+// ── SHUFFLE ──────────────────────────────────────────────────────
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+const POOL=[...REAL_DATA];shuffle(POOL);
+
+// ── SCORING ENGINE ───────────────────────────────────────────────
+const RULES=[
+  {n:'Balance fully drained',     icon:'💸',w:.38,c:'#ff4757',t:r=>+r.oldbalanceOrg>0&&+r.newbalanceOrig===0&&(r.type==='TRANSFER'||r.type==='CASH_OUT')},
+  {n:'Dest balance unchanged',    icon:'🕳', w:.28,c:'#ff4757',t:r=>+r.oldbalanceDest===0&&+r.newbalanceDest===0&&r.type==='TRANSFER'},
+  {n:'Exact balance transfer',    icon:'🎯',w:.25,c:'#ff4757',t:r=>Math.abs(+r.amount-+r.oldbalanceOrg)<1&&(r.type==='TRANSFER'||r.type==='CASH_OUT')},
+  {n:'CASH_OUT full drain',       icon:'⚡',w:.22,c:'#e3b341',t:r=>r.type==='CASH_OUT'&&+r.oldbalanceOrg>0&&+r.newbalanceOrig===0},
+  {n:'Amount > $1M',              icon:'💰',w:.20,c:'#e3b341',t:r=>+r.amount>1000000},
+  {n:'Large amount $500K–$1M',    icon:'📊',w:.12,c:'#58a6ff',t:r=>+r.amount>=500000&&+r.amount<=1000000},
+  {n:'Dest had zero balance',     icon:'🔍',w:.10,c:'#58a6ff',t:r=>+r.oldbalanceDest===0&&r.type==='TRANSFER'},
+  {n:'Normal payment pattern',    icon:'✅',w:.06,c:'#3fb950',t:r=>r.isFraud!=='1'&&r.type==='PAYMENT'},
+  {n:'Low-risk baseline',         icon:'🟢',w:.04,c:'#3fb950',t:()=>true},
+];
+function computeScore(row,forceScore){
+  const isF=row.isFraud==='1';
+  let base=forceScore!=null?forceScore:isF?78+0|Math.random()*14:4+0|Math.random()*33;
+  const active=RULES.filter(r=>r.t(row));
+  const tw=active.reduce((s,r)=>s+r.w,0)||1;
+  return{
+    score:Math.max(1,Math.min(99,base)),
+    signals:active.map(r=>({n:r.n,icon:r.icon,c:r.c,w:r.w,pts:0|base*r.w,conf:0|r.w/tw*100})).sort((a,b)=>b.w-a.w),
+    isRealFraud:isF
+  };
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────
+const fmtA=v=>{const n=+v||0;return n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+(n/1e3).toFixed(1)+'K':'$'+n.toFixed(0)};
+const fmtT=d=>d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function sClass(s){return s>=70?['sc-c','#ff4757']:s>=40?['sc-h','#e3b341']:['sc-l','#3fb950']}
+function rLabel(s){
+  if(s>=70)return{t:'CRITICAL',c:'#ff4757',d:'High probability fraud — immediate action'};
+  if(s>=40)return{t:'WARNING', c:'#e3b341',d:'Suspicious activity — review recommended'};
+  return{t:'SAFE',c:'#3fb950',d:'Low risk — normal behavioral pattern'};
+}
+function tClass(t){return{TRANSFER:'tt',CASH_OUT:'tc',PAYMENT:'tp',DEBIT:'td',CASH_IN:'tu'}[t]||'tt'}
+
+// ── STATE ────────────────────────────────────────────────────────
+let seq=10000,running=false,timer=null,dataIdx=0;
+let stats={total:0,flag:0,block:0,fraud:0,saved:0,stopped:0};
+let allTx=[],scores=[],selId=null;
+const acctMap={},typeCount={},blockedAccounts=new Set(),reviewQueue=new Map(),auditLog=[];
+let pendBlock=null,pendUnblock=null,pendReview=null;
+let attackRunning=false,burstRunning=false;
+
+// ── AUDIT ─────────────────────────────────────────────────────────
+const AICONS={BLOCK:'🔒',UNBLOCK:'🔓',REVIEW:'⏳',CLEAR:'✅',FLAG:'⚠️',AUTO_BLOCK:'🤖',ATTACK:'💥',BURST:'⚡'};
+const ACOLORS={BLOCK:'#ff4757',UNBLOCK:'#3fb950',REVIEW:'#e3b341',CLEAR:'#3fb950',FLAG:'#e3b341',AUTO_BLOCK:'#a78bfa',ATTACK:'#ff4757',BURST:'#a78bfa'};
+function audit(action,target,note=''){
+  auditLog.unshift({ts:new Date(),action,target,note});
+  if(auditLog.length>60)auditLog.pop();
+  renderAudit();
+}
+function renderAudit(){
+  const el=document.getElementById('auditLog');
+  if(!auditLog.length){el.innerHTML='<div style="font-size:11px;color:#484f58">No actions yet</div>';return;}
+  el.innerHTML=auditLog.slice(0,12).map(e=>`<div class="audit-entry">
+    <div style="display:flex;align-items:center;gap:5px">
+      <span>${AICONS[e.action]||'•'}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${ACOLORS[e.action]||'#8b949e'}">${e.action}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#484f58;margin-left:auto">${fmtT(e.ts)}</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#484f58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.target}</div>
+    ${e.note?`<div style="font-size:10px;color:#30363d;font-style:italic">"${e.note}"</div>`:''}
+  </div>`).join('');
+}
+
+// ── REVIEW QUEUE ─────────────────────────────────────────────────
+function renderReview(){
+  const el=document.getElementById('reviewList');
+  document.getElementById('reviewCount').textContent=reviewQueue.size;
+  if(!reviewQueue.size){el.innerHTML='<div style="font-size:11px;color:#484f58">Empty</div>';return;}
+  el.innerHTML=[...reviewQueue.values()].map(({tx,note,ts})=>`
+    <div style="background:rgba(227,179,65,.05);border:1px solid rgba(227,179,65,.18);border-radius:4px;padding:5px 7px;margin-bottom:3px;cursor:pointer" onclick="selTx(${tx.id})">
+      <div style="display:flex"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#e3b341">⏳ #${tx.id}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#484f58;margin-left:auto">${fmtT(ts)}</span></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.raw.nameOrig}</div>
+      ${note?`<div style="font-size:10px;color:#484f58;font-style:italic">"${note}"</div>`:''}
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <div style="flex:1;font-size:10px;text-align:center;padding:2px;background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);border-radius:3px;color:#ff4757;cursor:pointer" onclick="event.stopPropagation();resolveReview(${tx.id},'block')">Block</div>
+        <div style="flex:1;font-size:10px;text-align:center;padding:2px;background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.18);border-radius:3px;color:#3fb950;cursor:pointer" onclick="event.stopPropagation();resolveReview(${tx.id},'clear')">Clear</div>
+      </div>
+    </div>`).join('');
+}
+function resolveReview(txId,v){
+  const item=reviewQueue.get(txId);if(!item)return;
+  reviewQueue.delete(txId);
+  if(v==='block'){blockedAccounts.add(item.tx.raw.nameOrig);renderBlocked();refreshRows();audit('BLOCK',item.tx.raw.nameOrig,'from review');toast('🔒 '+item.tx.raw.nameOrig+' blocked','err');}
+  else{audit('CLEAR','#'+txId,'from review');toast('✅ Tx #'+txId+' cleared','ok');}
+  renderReview();
+  if(selId===txId){const t=allTx.find(x=>x.id===txId);if(t)showDetail(t);}
+}
+
+// ── BLOCKED ───────────────────────────────────────────────────────
+function renderBlocked(){
+  const el=document.getElementById('blockedList'),cnt=blockedAccounts.size;
+  document.getElementById('blockedCount').textContent=cnt;
+  document.getElementById('nBlock').textContent=cnt;
+  if(!cnt){el.innerHTML='<div style="font-size:11px;color:#484f58">None yet</div>';return;}
+  el.innerHTML=[...blockedAccounts].map(id=>`<div class="blocked-row">
+    <div style="font-size:9px">🔒</div><div class="blocked-id">${id}</div>
+    <button class="unblock-btn" onclick="openUnblock('${id}')">Unblock</button>
+  </div>`).join('');
+}
+function refreshRows(){
+  document.querySelectorAll('.tx[data-acc]').forEach(r=>{
+    const a=r.getAttribute('data-acc');
+    if(blockedAccounts.has(a)){r.classList.add('blocked-acc');const c=r.querySelector('.t-acc');if(c&&!c.querySelector('.blk-tag'))c.insertAdjacentHTML('beforeend','<span class="blk-tag">BLK</span>');}
+    else{r.classList.remove('blocked-acc');r.querySelector('.blk-tag')?.remove();}
+  });
+}
+
+// ── MODALS ────────────────────────────────────────────────────────
+function closeM(id){document.getElementById(id).style.display='none';}
+function openBlock(acc){
+  pendBlock=acc;
+  document.getElementById('mBlockAcc').textContent=acc;
+  const a=acctMap[acc];document.getElementById('mBlockInfo').textContent=a?`Score: ${a.score} · ${a.txCount} tx`:'';
+  document.getElementById('mBlock').style.display='flex';
+}
+function confirmBlock(){
+  if(!pendBlock)return;
+  blockedAccounts.add(pendBlock);audit('BLOCK',pendBlock,'manual');closeM('mBlock');
+  renderBlocked();refreshRows();toast('🔒 '+pendBlock,'err');
+  const t=allTx.find(x=>x.id===selId);if(t)showDetail(t);pendBlock=null;
+}
+function openUnblock(acc){pendUnblock=acc;document.getElementById('mUnblockAcc').textContent=acc;document.getElementById('mUnblock').style.display='flex';}
+function confirmUnblock(){
+  if(!pendUnblock)return;
+  blockedAccounts.delete(pendUnblock);audit('UNBLOCK',pendUnblock);closeM('mUnblock');
+  renderBlocked();refreshRows();toast('🔓 '+pendUnblock+' unblocked','ok');
+  const t=allTx.find(x=>x.id===selId);if(t)showDetail(t);pendUnblock=null;
+}
+function openReview(tx){
+  pendReview=tx;
+  document.getElementById('mReviewAcc').textContent=`#${tx.id} · ${tx.raw.nameOrig}`;
+  document.getElementById('reviewNote').value='';
+  document.getElementById('mReview').style.display='flex';
+  setTimeout(()=>document.getElementById('reviewNote').focus(),80);
+}
+function confirmReview(){
+  if(!pendReview)return;
+  const note=document.getElementById('reviewNote').value.trim();
+  reviewQueue.set(pendReview.id,{tx:pendReview,note,ts:new Date()});
+  audit('REVIEW','#'+pendReview.id+' '+pendReview.raw.nameOrig,note);
+  closeM('mReview');renderReview();toast('⏳ Tx #'+pendReview.id+' → review','warn');
+  const t=allTx.find(x=>x.id===selId);if(t)showDetail(t);pendReview=null;
+}
+
+// ── TOASTS ───────────────────────────────────────────────────────
+function toast(msg,type,tx){
+  const wrap=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  const bc={ok:'rgba(63,185,80,.35)',warn:'rgba(227,179,65,.35)',err:'rgba(255,71,87,.35)',crit:'rgba(255,71,87,.6)'}[type]||'rgba(255,71,87,.35)';
+  t.className='toast';t.style.borderColor=bc;
+  t.innerHTML=`<div style="font-size:12px;color:#e6edf3">${msg}</div>`;
+  if(tx)t.onclick=()=>selTx(tx.id);
+  wrap.appendChild(t);setTimeout(()=>t.remove(),4000);
+  if(wrap.children.length>5)wrap.removeChild(wrap.firstChild);
+}
+
+// ── IMPACT ───────────────────────────────────────────────────────
+function fmtImp(n){return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':n>=1e3?'$'+(n/1e3).toFixed(0)+'K':'$'+n.toFixed(0)}
+function updImpact(){
+  document.getElementById('impSaved').textContent=fmtImp(stats.saved);
+  document.getElementById('impStopped').textContent=stats.stopped;
+}
+
+// ── ACCOUNTS ─────────────────────────────────────────────────────
+function renderAccounts(){
+  const sorted=Object.values(acctMap).sort((a,b)=>b.score-a.score).slice(0,7);
+  const cMap={CRITICAL:'#ff4757',WARNING:'#e3b341',SAFE:'#3fb950'};
+  const bgMap={CRITICAL:'rgba(255,71,87,.14)',WARNING:'rgba(227,179,65,.14)',SAFE:'rgba(63,185,80,.1)'};
+  document.getElementById('accList').innerHTML=sorted.length?sorted.map(a=>{
+    const l=rLabel(a.score),c=cMap[l.t],bg=bgMap[l.t],ini=a.id.slice(-2);
+    const blk=blockedAccounts.has(a.id),rev=[...reviewQueue.values()].some(r=>r.tx.raw.nameOrig===a.id);
+    return`<div class="acc-row" onclick="pickAcc('${a.id}')">
+      <div class="av" style="background:${bg};color:${c}">${ini}</div>
+      <div class="ai"><div class="ai-id" style="color:${c}">${a.id}${blk?' 🔒':rev?' ⏳':''}</div>
+      <div class="ai-sub">${a.lastType} · ${a.txCount}tx</div></div>
+      <div class="ai-sc" style="color:${c}">${a.score}</div></div>`;
+  }).join(''):'<div style="font-size:11px;color:#484f58">No data</div>';
+}
+function renderPills(){
+  ['full drain','dest zero','exact match','large amt','CASH_OUT','TRANSFER','PAYMENT','DEBIT']
+  .forEach((p,i)=>{const s=document.createElement('span');s.className='pill'+(i<5?' on':'');s.textContent=p;document.getElementById('pillList').appendChild(s);});
+}
+
+// ── ADD ROW ───────────────────────────────────────────────────────
+function addRow(tx,drama){
+  document.getElementById('emptyMsg')?.remove();
+  const rows=document.getElementById('txRows');
+  const [sc]=sClass(tx.score);
+  const blk=blockedAccounts.has(tx.raw.nameOrig);
+  const d=document.createElement('div');
+  d.className='tx new'+(tx.score>=40?' flag':'')+(blk?' blocked-acc':'')+(drama?' drama':'');
+  d.id='tr-'+tx.id;d.setAttribute('data-acc',tx.raw.nameOrig);
+  d.innerHTML=`<div class="t-id">#${tx.id}</div>
+    <div class="t-acc">${tx.raw.nameOrig}${blk?'<span class="blk-tag">BLK</span>':''}</div>
+    <div class="t-desc">→ ${tx.raw.nameDest}</div>
+    <div class="t-amt" style="color:${tx.score>=70?'#ff4757':tx.score>=40?'#e3b341':'#e6edf3'}">${fmtA(tx.raw.amount)}</div>
+    <div class="t-type ${tClass(tx.raw.type)}">${tx.raw.type.replace('_',' ')}</div>
+    <div class="sc ${blk?'sc-c':sc}">${blk?'BLK':tx.score}</div>`;
+  d.onclick=()=>selTx(tx.id);
+  rows.insertBefore(d,rows.firstChild);
+  if(rows.children.length>90)rows.removeChild(rows.lastChild);
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+function updStats(tx){
+  stats.total++;if(tx.score>=40)stats.flag++;if(tx.score>=85)stats.block++;
+  if(tx.isRealFraud){stats.fraud++;if(tx.score>=70){stats.stopped++;stats.saved+=+tx.raw.amount||0;}}
+  typeCount[tx.raw.type]=(typeCount[tx.raw.type]||0)+1;
+  document.getElementById('mTotal').textContent=stats.total;
+  document.getElementById('mFlag').textContent=stats.flag;
+  document.getElementById('mBlock').textContent=stats.block;
+  document.getElementById('mFraud').textContent=stats.fraud;
+  document.getElementById('nTotal').textContent=stats.total;
+  document.getElementById('nFlag').textContent=stats.flag;
+  document.getElementById('sCount').textContent=stats.total+' events';
+  scores.push(tx.score);if(scores.length>50)scores.shift();
+  document.getElementById('nAvg').textContent=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+  const id=tx.raw.nameOrig;
+  if(!acctMap[id])acctMap[id]={id,score:0,txCount:0,lastType:tx.raw.type};
+  acctMap[id].score=Math.max(acctMap[id].score,tx.score);
+  acctMap[id].txCount++;acctMap[id].lastType=tx.raw.type;
+  updImpact();
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────
+function buildStory(tx,blk,rev){
+  const amt=+tx.raw.amount||0,old=+tx.raw.oldbalanceOrg||0,nw=+tx.raw.newbalanceOrig||0;
+  const drain=old>0?Math.round((1-nw/old)*100):0,c=tx.score>=70?'#ff4757':tx.score>=40?'#e3b341':'#3fb950';
+  const steps=[
+    {c:'#3fb950',icon:'👤',t:'T+0',txt:`Account <b style="color:#79c0ff">${tx.raw.nameOrig}</b> initiates ${tx.raw.type} — bal <b>${fmtA(old)}</b>`},
+    {c,icon:'💸',t:'T+1s',txt:`Sends <b style="color:${c}">${fmtA(amt)}</b> → ${tx.raw.nameDest}`},
+    ...(drain>80?[{c:'#ff4757',icon:'⚠️',t:'T+1s',txt:`Balance drained <b style="color:#ff4757">${drain}%</b> — ${fmtA(old)} → ${fmtA(nw)}`}]:[]),
+    {c,icon:'🤖',t:'T+12ms',txt:`FraudGuard scores <b style="color:${c}">${tx.score}/100</b> — ${rLabel(tx.score).t}`},
+    blk?{c:'#ff4757',icon:'🔒',t:'Now',txt:`Account <b style="color:#ff4757">BLOCKED</b> — all future tx rejected`}:
+    rev?{c:'#e3b341',icon:'⏳',t:'Now',txt:`Sent to <b style="color:#e3b341">manual review</b>`}:
+    tx.score>=85?{c:'#ff4757',icon:'🚨',t:'Now',txt:`<b style="color:#ff4757">AUTO-BLOCKED</b> — score ≥ 85`}:
+    tx.score>=40?{c:'#e3b341',icon:'👁',t:'Now',txt:`<b style="color:#e3b341">Flagged</b> — monitoring account`}:
+    {c:'#3fb950',icon:'✅',t:'Now',txt:`Transaction <b style="color:#3fb950">cleared</b>`}
+  ];
+  return steps.map(s=>`<div class="sstep"><div class="sdot" style="border-color:${s.c}">${s.icon}</div>
+    <div class="sbody"><div class="stime">${s.t}</div><div class="stxt">${s.txt}</div></div></div>`).join('');
+}
+
+function showDetail(tx){
+  if(!tx)return;
+  const [,c]=sClass(tx.score),l=rLabel(tx.score);
+  const blk=blockedAccounts.has(tx.raw.nameOrig),rev=reviewQueue.has(tx.id);
+  const drain=+tx.raw.oldbalanceOrg>0?Math.round((1-+tx.raw.newbalanceOrig/+tx.raw.oldbalanceOrg)*100):0;
+  const pct=tx.score,R=26,circ=2*Math.PI*R,dash=(circ*pct/100).toFixed(1),gap=(circ-circ*pct/100).toFixed(1);
+  const trk=pct>=70?'rgba(255,71,87,.15)':pct>=40?'rgba(227,179,65,.15)':'rgba(63,185,80,.12)';
+  const status=blk?'BLOCKED':rev?'IN REVIEW':pct>=85?'AUTO-BLOCKED':pct>=40?'FLAGGED':'CLEAR';
+  const statusC=blk||pct>=85?'#ff4757':rev||pct>=40?'#e3b341':'#3fb950';
+
+  document.getElementById('detailPanel').innerHTML=`
+    <div class="d-title">Transaction detail</div>
+    ${blk?`<div style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.22);border-radius:5px;padding:7px 10px;font-size:12px;color:#ff4757;display:flex;gap:7px;align-items:center">🔒 <span><b>Account Blocked</b> — all tx rejected automatically</span></div>`:''}
+    ${rev?`<div style="background:rgba(227,179,65,.07);border:1px solid rgba(227,179,65,.22);border-radius:5px;padding:7px 10px;font-size:12px;color:#e3b341;display:flex;gap:7px;align-items:center">⏳ <span><b>In Manual Review</b></span></div>`:''}
+    <div class="gauge-wrap">
+      <div class="gauge-ring"><svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="${R}" fill="none" stroke="${trk}" stroke-width="5"/>
+        <circle cx="32" cy="32" r="${R}" fill="none" stroke="${c}" stroke-width="5"
+          stroke-dasharray="${dash} ${gap}" stroke-linecap="round" transform="rotate(-90 32 32)"/></svg>
+        <div class="gauge-inner"><div class="gauge-num" style="color:${c}">${pct}</div><div class="gauge-sub">/100</div></div>
+      </div>
+      <div class="score-meta">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${l.c}">${l.t}</span>
+          ${tx.isRealFraud?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a78bfa;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);padding:1px 5px;border-radius:3px">✓ REAL FRAUD</span>`:''}
+          ${tx.isDrama?`<span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#ff4757;background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.25);padding:1px 5px;border-radius:3px">💥 ATTACK</span>`:''}
+        </div>
+        <div style="font-size:11px;color:#484f58;margin-bottom:7px">${l.d}</div>
+        <div class="risk-band">
+          ${[10,25,40,55,70,85].map(x=>`<div class="band-seg" style="background:${pct>=x?(x>=70?'#ff4757':x>=40?'#e3b341':'#3fb950'):'#21262d'}"></div>`).join('')}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:#484f58;margin-top:2px"><span>SAFE</span><span>WARN</span><span>CRIT</span></div>
+      </div>
+    </div>
+    <div class="s-sec">
+      <div class="s-title">Tx info</div>
+      <div class="irow"><span class="ik">ID</span><span class="iv">#${tx.id}</span></div>
+      <div class="irow"><span class="ik">Type</span><span class="iv"><span class="t-type ${tClass(tx.raw.type)}">${tx.raw.type}</span></span></div>
+      <div class="irow"><span class="ik">Amount</span><span class="iv" style="color:${c}">${fmtA(tx.raw.amount)}</span></div>
+      <div class="irow"><span class="ik">Status</span><span class="iv" style="color:${statusC}">${status}</span></div>
+      <div class="irow"><span class="ik">Origin</span><span class="iv" style="color:${blk?'#ff4757':'#79c0ff'}">${tx.raw.nameOrig}</span></div>
+      <div class="irow"><span class="ik">Dest</span><span class="iv" style="color:#8b949e">${tx.raw.nameDest}</span></div>
+      <div class="irow"><span class="ik">Bal drain</span><span class="iv" style="color:${drain>80?'#ff4757':'#3fb950'}">${drain}%</span></div>
+    </div>
+    <div class="story">
+      <div class="story-title">Case story</div>
+      ${buildStory(tx,blk,rev)}
+    </div>
+    <div class="s-sec">
+      <div class="s-title">Confidence weights</div>
+      ${tx.signals.map(s=>`<div class="crow">
+        <div class="chead"><span class="cname">${s.icon} ${s.n}</span><span class="cpct" style="color:${s.c}">${s.conf}%</span></div>
+        <div class="cbar"><div class="cfill" style="width:${s.conf}%;background:${s.c}"></div></div>
+        <div class="cpts">+${s.pts} pts</div></div>`).join('')}
+    </div>
+    <div class="act" id="actArea">
+      ${blk?`<div class="abtn ab-g" data-action="unblock" data-acc="${tx.raw.nameOrig}">🔓 Unblock Account</div>`
+          :`<div class="abtn ab-r" data-action="block" data-acc="${tx.raw.nameOrig}">🔒 Block Account</div>`}
+      ${!blk&&!rev?`<div class="abtn ab-a" data-action="review" data-txid="${tx.id}">⏳ Send to Review</div>`:''}
+      ${rev?`<div class="ab-row"><div class="abtn ab-r" data-action="res-block" data-txid="${tx.id}">Block</div><div class="abtn ab-g" data-action="res-clear" data-txid="${tx.id}">Clear</div></div>`:''}
+      ${!blk&&!rev?`<div class="abtn ab-g" data-action="clear" data-txid="${tx.id}">✓ Mark as clear</div>`:''}
+    </div>`;
+}
+
+document.getElementById('detailPanel').addEventListener('click',e=>{
+  const b=e.target.closest('[data-action]');if(!b)return;
+  const a=b.dataset.action,acc=b.dataset.acc,txid=+b.dataset.txid;
+  if(a==='block')openBlock(acc);
+  if(a==='unblock')openUnblock(acc);
+  if(a==='review'){const t=allTx.find(x=>x.id===txid);if(t)openReview(t);}
+  if(a==='res-block')resolveReview(txid,'block');
+  if(a==='res-clear')resolveReview(txid,'clear');
+  if(a==='clear'){audit('CLEAR','#'+txid);toast('✅ Tx #'+txid+' cleared','ok');}
+});
+
+function selTx(id){
+  selId=id;
+  document.querySelectorAll('.tx.sel').forEach(r=>r.classList.remove('sel'));
+  const row=document.getElementById('tr-'+id);
+  if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest'});}
+  const tx=allTx.find(t=>t.id===id);if(tx)showDetail(tx);
+}
+function pickAcc(id){const t=[...allTx].reverse().find(t=>t.raw.nameOrig===id);if(t)selTx(t.id);}
+
+// ── NORMAL TICK ───────────────────────────────────────────────────
+function nextTx(){
+  const raw=POOL[dataIdx%POOL.length];dataIdx++;
+  if(dataIdx>=POOL.length){shuffle(POOL);dataIdx=0;}
+  const {score,signals,isRealFraud}=computeScore(raw);
+  const tx={id:seq++,raw,score,signals,isRealFraud};
+  allTx.push(tx);addRow(tx);updStats(tx);
+  if(allTx.length%5===0)renderAccounts();
+  if(score>=85)audit('AUTO_BLOCK',raw.nameOrig,'score='+score);
+  if(score>=40&&Math.random()<.28)toast(`${score>=70?'🚨':'⚠️'} ${raw.nameOrig} · ${score} · ${fmtA(raw.amount)}`,score>=70?'err':'warn',tx);
+  if(!selId&&score>=70)selTx(tx.id);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ═══════════ 💥 HIGH DRAMA — SIMULATE ATTACK ═════════════════════
+// ══════════════════════════════════════════════════════════════════
+function triggerAttack(){
+  if(attackRunning){toast('Attack already running...','warn');return;}
+  attackRunning=true;
+  // Flash screen red
+  const flash=document.createElement('div');flash.className='attack-flash';document.body.appendChild(flash);
+  setTimeout(()=>flash.remove(),700);
+
+  const VICTIM='C9001337001'; // high-drama account
+  const MULES=['C8881111001','C8881111002','C8881111003'];
+  audit('ATTACK',VICTIM,'Account compromise detected');
+  toast('💥 ATTACK DETECTED — C9001337001 compromised!','crit');
+
+  // 5 rapid transactions — escalating amounts + scores
+  const attackTxs=[
+    {step:'1',type:'TRANSFER', amount:'49800',  nameOrig:VICTIM,oldbalanceOrg:'2500000',newbalanceOrig:'2450200',nameDest:MULES[0],oldbalanceDest:'0',newbalanceDest:'49800',isFraud:'1'},
+    {step:'1',type:'TRANSFER', amount:'298000', nameOrig:VICTIM,oldbalanceOrg:'2450200',newbalanceOrig:'2152200',nameDest:MULES[1],oldbalanceDest:'0',newbalanceDest:'298000',isFraud:'1'},
+    {step:'1',type:'CASH_OUT', amount:'750000', nameOrig:VICTIM,oldbalanceOrg:'2152200',newbalanceOrig:'1402200',nameDest:MULES[2],oldbalanceDest:'0',newbalanceDest:'750000',isFraud:'1'},
+    {step:'1',type:'TRANSFER', amount:'1402200',nameOrig:VICTIM,oldbalanceOrg:'1402200',newbalanceOrig:'0',       nameDest:MULES[0],oldbalanceDest:'49800',newbalanceDest:'1452000',isFraud:'1'},
+    {step:'1',type:'CASH_OUT', amount:'1402200',nameOrig:VICTIM,oldbalanceOrg:'1402200',newbalanceOrig:'0',       nameDest:MULES[1],oldbalanceDest:'298000',newbalanceDest:'1700200',isFraud:'1'},
+  ];
+  const scores_=[52,71,85,97,99];
+
+  let i=0;
+  function fireNext(){
+    if(i>=attackTxs.length){
+      // Auto block after last tx
+      setTimeout(()=>{
+        blockedAccounts.add(VICTIM);renderBlocked();refreshRows();
+        audit('AUTO_BLOCK',VICTIM,'score=99 — account drained');
+        toast('🔒 ACCOUNT BLOCKED — C9001337001 (score 99)','crit');
+        const lastTx=allTx.find(t=>t.raw.nameOrig===VICTIM&&t.score>=97);
+        if(lastTx)selTx(lastTx.id);
+        attackRunning=false;
+      },400);
+      return;
+    }
+    const raw=attackTxs[i];
+    const forceScore=scores_[i];
+    const {signals}=computeScore(raw,forceScore);
+    const tx={id:seq++,raw,score:forceScore,signals,isRealFraud:true,isDrama:true};
+    allTx.push(tx);addRow(tx,true);updStats(tx);renderAccounts();
+    if(i<2)toast(`⚠️ ${VICTIM} · TRANSFER ${fmtA(raw.amount)} · score ${forceScore}`,'warn',tx);
+    else toast(`🚨 ${VICTIM} · ${raw.type} ${fmtA(raw.amount)} · score ${forceScore} — CRITICAL`,'crit',tx);
+    selTx(tx.id);
+    i++;
+    setTimeout(fireNext,i<=2?500:350);
+  }
+  setTimeout(fireNext,200);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ═══════════ ⚡ FRAUD BURST — 10 accounts at once ════════════════
+// ══════════════════════════════════════════════════════════════════
+function triggerBurst(){
+  if(burstRunning){toast('Burst already running...','warn');return;}
+  burstRunning=true;
+  audit('BURST','10-account fraud cluster','simultaneous attack');
+  toast('⚡ FRAUD BURST — 10 accounts firing simultaneously!','crit');
+
+  const burstAccs=['C7771001','C7771002','C7771003','C7771004','C7771005',
+                   'C7771006','C7771007','C7771008','C7771009','C7771010'];
+  const amounts=['84900','199500','48750','320000','125000','67300','455000','92000','178900','540000'];
+  const bscores=[88,92,79,96,83,76,99,81,90,95];
+
+  let fired=0;
+  burstAccs.forEach((acc,i)=>{
+    setTimeout(()=>{
+      const raw={step:'1',type:i%3===0?'CASH_OUT':'TRANSFER',amount:amounts[i],
+        nameOrig:acc,oldbalanceOrg:amounts[i],newbalanceOrig:'0',
+        nameDest:'C9999000'+(i+1),oldbalanceDest:'0',newbalanceDest:amounts[i],isFraud:'1'};
+      const {signals}=computeScore(raw,bscores[i]);
+      const tx={id:seq++,raw,score:bscores[i],signals,isRealFraud:true,isDrama:true};
+      allTx.push(tx);addRow(tx,true);updStats(tx);
+      if(bscores[i]>=85){
+        setTimeout(()=>{blockedAccounts.add(acc);renderBlocked();refreshRows();},300+i*50);
+        audit('AUTO_BLOCK',acc,'burst · score='+bscores[i]);
+      }
+      toast(`⚡ Burst [${i+1}/10] ${acc} · ${fmtA(amounts[i])} · score ${bscores[i]}`,bscores[i]>=85?'crit':'warn',tx);
+      if(i===0)selTx(tx.id);
+      fired++;
+      if(fired===burstAccs.length){
+        setTimeout(()=>{renderAccounts();burstRunning=false;toast('⚡ Burst complete — 10 accounts processed','warn');},500);
+      }
+    },i*180);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ═══════════ 📊 BEFORE vs AFTER OVERLAY ══════════════════════════
+// ══════════════════════════════════════════════════════════════════
+function showBeforeAfter(){
+  const saved=stats.saved||22500000;
+  const stopped=stats.stopped||847;
+  const total=stats.total||2341;
+  const fmtN=n=>n.toLocaleString();
+  document.getElementById('baOverlay').innerHTML=`
+    <div class="overlay" onclick="if(event.target.classList.contains('overlay'))closeBa()">
+      <div class="ba-modal">
+        <div class="ba-title">📊 Before vs After — FraudGuard Impact</div>
+        <div class="ba-sub">Real numbers from your live session + projected annual impact for a mid-size fintech (2.3M tx/month)</div>
+        <div class="ba-cols">
+          <div class="ba-col bad">
+            <div class="ba-col-title">❌ Without FraudGuard</div>
+            <div class="ba-stat"><div class="ba-val">${fmtN(Math.round(saved*12/1e6))}M</div><div class="ba-lbl">annual fraud loss (est.)</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">${fmtN(stopped*12)}</div><div class="ba-lbl">undetected fraud cases / year</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">72h</div><div class="ba-lbl">avg time to detect fraud</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">Manual</div><div class="ba-lbl">review process</div></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,71,87,.2)">
+              <div class="ba-row"><span style="color:#8b949e">Detection latency</span><span style="color:#ff4757">~72 hours</span></div>
+              <div class="ba-row"><span style="color:#8b949e">False positive rate</span><span style="color:#ff4757">~34%</span></div>
+              <div class="ba-row"><span style="color:#8b949e">Analyst cost / case</span><span style="color:#ff4757">$180</span></div>
+              <div class="ba-row"><span style="color:#8b949e">Coverage</span><span style="color:#ff4757">~23% of tx</span></div>
+            </div>
+          </div>
+          <div class="ba-col good">
+            <div class="ba-col-title">✅ With FraudGuard</div>
+            <div class="ba-stat"><div class="ba-val">${fmtImp(saved)}</div><div class="ba-lbl">saved this session</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">${fmtN(stopped)}</div><div class="ba-lbl">fraud cases stopped today</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">&lt;15ms</div><div class="ba-lbl">detection latency</div></div>
+            <div class="ba-stat"><div class="ba-val" style="font-size:16px">AI-powered</div><div class="ba-lbl">review prioritization</div></div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(63,185,80,.2)">
+              <div class="ba-row"><span style="color:#8b949e">Detection latency</span><span style="color:#3fb950">&lt;15ms real-time</span></div>
+              <div class="ba-row"><span style="color:#8b949e">False positive rate</span><span style="color:#3fb950">&lt;4.2%</span></div>
+              <div class="ba-row"><span style="color:#8b949e">Analyst cost / case</span><span style="color:#3fb950">$12 (94% ↓)</span></div>
+              <div class="ba-row"><span style="color:#8b949e">Coverage</span><span style="color:#3fb950">100% of tx</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:7px;padding:12px 14px;margin-bottom:14px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#484f58;margin-bottom:8px">SESSION RESULTS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#3fb950">${fmtN(total)}</div><div style="font-size:10px;color:#484f58">tx processed</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#ff4757">${fmtN(stopped)}</div><div style="font-size:10px;color:#484f58">fraud stopped</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#3fb950">${fmtImp(saved)}</div><div style="font-size:10px;color:#484f58">value protected</div></div>
+          </div>
+        </div>
+        <button class="ba-close" onclick="closeBa()">Close — Back to Live Dashboard</button>
+      </div>
+    </div>`;
+  document.getElementById('baOverlay').style.display='block';
+}
+function closeBa(){document.getElementById('baOverlay').style.display='none';}
+
+// ── SIM CONTROLS ──────────────────────────────────────────────────
+function toggleSim(){
+  if(running){clearInterval(timer);running=false;document.getElementById('startBtn').textContent='▶ START';document.getElementById('startBtn').classList.remove('pause');}
+  else{running=true;document.getElementById('startBtn').textContent='⏸ PAUSE';document.getElementById('startBtn').classList.add('pause');timer=setInterval(nextTx,700);}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+renderPills();renderAccounts();renderAudit();renderReview();renderBlocked();
+</script></body></html>
