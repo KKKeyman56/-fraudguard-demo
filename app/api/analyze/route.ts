@@ -2,6 +2,7 @@ import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { StudyGuideSchema } from "@/lib/schema";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -88,6 +89,14 @@ export async function POST(req: Request) {
     );
   }
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Silakan masuk dulu." }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const file = formData.get("image");
   if (!(file instanceof File)) {
@@ -156,6 +165,18 @@ export async function POST(req: Request) {
         { error: "AI tidak dapat memproses gambar ini. Coba foto yang lebih jelas." },
         { status: 422 }
       );
+    }
+
+    // Simpan ke riwayat. Kegagalan simpan tidak menggagalkan respons —
+    // panduan tetap dikirim ke user.
+    const { error: insertError } = await supabase.from("guides").insert({
+      user_id: user.id,
+      judul: parsed.data.judul,
+      mata_pelajaran: parsed.data.mata_pelajaran,
+      payload: parsed.data,
+    });
+    if (insertError) {
+      console.error("Gagal menyimpan riwayat:", insertError.message);
     }
 
     return NextResponse.json(parsed.data);
