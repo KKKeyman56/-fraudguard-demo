@@ -23,6 +23,25 @@ export default function Home() {
     reader.readAsDataURL(f);
   }
 
+  // Groq membatasi gambar base64 ~4 MB; foto HP modern sering 5-12 MB.
+  // Kompres di browser: sisi terpanjang maks 1568px, JPEG kualitas 85%.
+  async function compressImage(f: File): Promise<File> {
+    try {
+      const bitmap = await createImageBitmap(f);
+      const maxSide = 1568;
+      const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1 && f.size < 2 * 1024 * 1024) return f;
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.85));
+      return blob ? new File([blob], "soal.jpg", { type: "image/jpeg" }) : f;
+    } catch {
+      return f;
+    }
+  }
+
   async function analyze() {
     if (!file) return;
     setLoading(true);
@@ -30,7 +49,7 @@ export default function Home() {
     setGuide(null);
     try {
       const form = new FormData();
-      form.append("image", file);
+      form.append("image", await compressImage(file));
       if (catatan.trim()) form.append("catatan", catatan);
       const res = await fetch("/api/analyze", { method: "POST", body: form });
       const data = await res.json();

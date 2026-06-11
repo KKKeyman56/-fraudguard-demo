@@ -21,14 +21,14 @@ lib/schema.ts             Zod schema StudyGuide (dipakai API + structured output
 lib/pdf.tsx               Template dokumen PDF
 ```
 
-- **Model:** `claude-opus-4-8` dengan adaptive thinking dan structured outputs (`zodOutputFormat`), sehingga respons AI dijamin valid terhadap schema.
-- **Vision:** foto dikirim sebagai blok image base64 (JPEG/PNG/GIF/WebP, maks 20 MB).
+- **Model:** Llama 4 Maverick via **Groq** (`meta-llama/llama-4-maverick-17b-128e-instruct`, bisa diganti lewat env `GROQ_MODEL`). Output JSON divalidasi dengan Zod; kalau meleset dari schema, ada satu kali retry otomatis dengan feedback error.
+- **Vision:** foto dikirim sebagai data-URL base64. Browser mengompres foto dulu (maks 1568px, JPEG 85%) karena Groq membatasi gambar base64 ±4 MB.
 
 ## Menjalankan secara lokal
 
 ```bash
 npm install
-cp .env.example .env.local   # isi ANTHROPIC_API_KEY
+cp .env.example .env.local   # isi GROQ_API_KEY (gratis di console.groq.com/keys)
 npm run dev
 ```
 
@@ -36,7 +36,7 @@ Buka http://localhost:3000.
 
 ## Deploy
 
-Siap di-deploy ke Vercel. Set environment variable `ANTHROPIC_API_KEY` di project settings. Route `analyze` butuh `maxDuration` tinggi (sudah diset 120 detik) karena analisis bisa memakan waktu.
+Siap di-deploy ke Vercel. Set environment variable `GROQ_API_KEY` di project settings. Route `analyze` butuh `maxDuration` tinggi (sudah diset 120 detik) karena analisis bisa memakan waktu.
 
 ## Roadmap (belum diimplementasikan)
 
