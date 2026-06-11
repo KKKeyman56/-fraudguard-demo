@@ -6,8 +6,24 @@ import { StudyGuideSchema } from "@/lib/schema";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-// Model vision di Groq. Bisa dioverride via env, mis. ke llama-4-scout yang lebih murah.
-const MODEL = process.env.GROQ_MODEL ?? "meta-llama/llama-4-maverick-17b-128e-instruct";
+// Groq rutin memensiunkan model (Maverick dihentikan Feb 2026). Kandidat dicoba
+// berurutan; yang pertama berhasil di-cache supaya request berikutnya langsung pakai.
+// Env GROQ_MODEL (kalau diset) selalu dicoba paling dulu.
+const VISION_MODEL_CANDIDATES = [
+  ...(process.env.GROQ_MODEL ? [process.env.GROQ_MODEL] : []),
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "meta-llama/llama-4-maverick-17b-128e-instruct",
+];
+
+let cachedModel: string | null = null;
+
+function isModelGone(err: unknown): boolean {
+  return (
+    err instanceof Groq.APIError &&
+    (err.status === 404 ||
+      /model_not_found|model_decommissioned|does not exist/i.test(err.message))
+  );
+}
 
 const SUPPORTED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
 type SupportedType = (typeof SUPPORTED_TYPES)[number];
@@ -35,14 +51,33 @@ ${JSON.stringify(z.toJSONSchema(StudyGuideSchema))}`;
 type ChatMessage = Groq.Chat.Completions.ChatCompletionMessageParam;
 
 async function generateGuide(client: Groq, messages: ChatMessage[]) {
-  const completion = await client.chat.completions.create({
-    model: MODEL,
-    messages,
-    response_format: { type: "json_object" },
-    max_completion_tokens: 8000,
-    temperature: 0.3,
-  });
-  return completion.choices[0]?.message?.content ?? "";
+  // Model ter-cache dicoba dulu; kalau ternyata sudah dipensiunkan Groq,
+  // jatuh kembali ke daftar kandidat lengkap.
+  const candidates = cachedModel
+    ? [cachedModel, ...VISION_MODEL_CANDIDATES.filter((m) => m !== cachedModel)]
+    : VISION_MODEL_CANDIDATES;
+  let lastErr: unknown;
+  for (const model of candidates) {
+    try {
+      const completion = await client.chat.completions.create({
+        model,
+        messages,
+        response_format: { type: "json_object" },
+        max_completion_tokens: 8000,
+        temperature: 0.3,
+      });
+      cachedModel = model;
+      return completion.choices[0]?.message?.content ?? "";
+    } catch (err) {
+      if (isModelGone(err)) {
+        if (cachedModel === model) cachedModel = null;
+        lastErr = err;
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
 }
 
 export async function POST(req: Request) {
