@@ -529,7 +529,7 @@ button.linklike {
    diupload, halaman tetap tampil normal dengan warna krem polos. */
 body {
   background-image:
-    linear-gradient(rgba(246, 244, 238, 0.93), rgba(246, 244, 238, 0.97)),
+    linear-gradient(rgba(246, 244, 238, 0.62), rgba(246, 244, 238, 0.88)),
     url("/bg-library.jpg");
   background-size: cover;
   background-position: center top;
