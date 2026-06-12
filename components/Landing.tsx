@@ -13,8 +13,8 @@ export default function Landing() {
         </h1>
         <p className="hero-sub">
           Belajarin mengubah foto tugas sekolahmu jadi panduan belajar lengkap — penjelasan
-          konsep, langkah pengerjaan, contoh serupa, dan latihan. Kamu yang mengerjakan, kami
-          yang menemani paham.
+          konsep, langkah pengerjaan, contoh serupa, dan latihan. Untuk semua pelajar, dari SD
+          sampai SMA, semua mata pelajaran.
         </p>
         <div className="hero-cta">
           <Link href="/login" className="btn-primary">
@@ -25,7 +25,7 @@ export default function Landing() {
 
         <div className="hero-mock" aria-hidden="true">
           <div className="mock-line mock-title">Persamaan Linear Satu Variabel</div>
-          <div className="mock-tag">Matematika · SMP kelas 7</div>
+          <div className="mock-tag">Semua jenjang: SD · SMP · SMA — semua mapel</div>
           <div className="mock-section">✏️ Konsep Kunci</div>
           <div className="mock-line w80" />
           <div className="mock-line w95" />

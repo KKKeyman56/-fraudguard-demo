@@ -364,7 +364,6 @@ button.linklike {
   padding: 22px 24px;
   text-align: left;
   box-shadow: 0 14px 40px rgba(31, 36, 33, 0.08);
-  transform: rotate(-1deg);
 }
 
 .mock-title {
