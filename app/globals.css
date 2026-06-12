@@ -258,3 +258,17 @@ button.linklike {
 .quota-empty {
   color: #8a2f10;
 }
+
+.pricing-card h2 {
+  font-size: 2rem;
+}
+
+.pricing-period {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.pricing-card ul {
+  margin: 12px 0;
+}
