@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GuideView from "@/components/GuideView";
 import type { StudyGuide } from "@/lib/schema";
+
+type Quota = { limit: number; used: number; remaining: number };
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,8 +14,22 @@ export default function Home() {
   const [guide, setGuide] = useState<StudyGuide | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<Quota | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  async function refreshQuota() {
+    try {
+      const res = await fetch("/api/quota");
+      if (res.ok) setQuota((await res.json()) as Quota);
+    } catch {
+      // Badge kuota opsional — kegagalan fetch tidak perlu mengganggu UI.
+    }
+  }
+
+  useEffect(() => {
+    refreshQuota();
+  }, []);
 
   function pickFile(f: File | undefined | null) {
     if (!f) return;
@@ -60,10 +76,12 @@ export default function Home() {
       }
       const data = await res.json();
       if (!res.ok) {
+        if (data.quota) setQuota(data.quota as Quota);
         setError(data.error ?? "Terjadi kesalahan. Coba lagi.");
         return;
       }
       setGuide(data as StudyGuide);
+      refreshQuota();
     } catch {
       setError("Tidak bisa terhubung ke server. Periksa koneksi lalu coba lagi.");
     } finally {
@@ -115,10 +133,21 @@ export default function Home() {
           onChange={(e) => setCatatan(e.target.value)}
         />
 
-        <button onClick={analyze} disabled={!file || loading}>
+        <button onClick={analyze} disabled={!file || loading || quota?.remaining === 0}>
           {loading && <span className="spinner" />}
           {loading ? "Menganalisis..." : "Buatkan Panduan Belajar"}
         </button>
+
+        {quota &&
+          (quota.remaining > 0 ? (
+            <p className="quota-badge">
+              Sisa kuota gratis hari ini: <strong>{quota.remaining}</strong> dari {quota.limit}
+            </p>
+          ) : (
+            <p className="quota-badge quota-empty">
+              Kuota gratis hari ini habis ({quota.limit}/hari). Reset jam 00.00 WIB.
+            </p>
+          ))}
 
         {error && <div className="error">{error}</div>}
       </div>
