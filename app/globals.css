@@ -523,3 +523,21 @@ button.linklike {
   padding: 24px 0 8px;
   margin-top: 30px;
 }
+
+/* Background ilustrasi perpustakaan (public/bg-library.jpg).
+   Overlay krem menjaga teks tetap terbaca; kalau file gambarnya belum
+   diupload, halaman tetap tampil normal dengan warna krem polos. */
+body {
+  background-image:
+    linear-gradient(rgba(246, 244, 238, 0.93), rgba(246, 244, 238, 0.97)),
+    url("/bg-library.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+@media (max-width: 640px) {
+  body {
+    background-attachment: scroll; /* fixed sering patah-patah di HP */
+  }
+}

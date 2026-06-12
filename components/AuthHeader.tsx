@@ -31,7 +31,7 @@ export default function AuthHeader() {
   return (
     <header className="topbar">
       <Link href="/" className="brand">
-        Belajarin
+        <span aria-hidden="true">🦉</span> Belajarin
       </Link>
       <nav>
         {!ready ? null : email ? (
