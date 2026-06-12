@@ -1,11 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import GuideView from "@/components/GuideView";
 import type { StudyGuide } from "@/lib/schema";
 
-type Quota = { limit: number; used: number; remaining: number };
+type Quota = {
+  limit: number;
+  used: number;
+  remaining: number;
+  isPremium?: boolean;
+  premiumUntil?: string | null;
+};
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -139,13 +146,25 @@ export default function Home() {
         </button>
 
         {quota &&
-          (quota.remaining > 0 ? (
+          (quota.isPremium ? (
             <p className="quota-badge">
-              Sisa kuota gratis hari ini: <strong>{quota.remaining}</strong> dari {quota.limit}
+              ⭐ Premium aktif
+              {quota.premiumUntil &&
+                ` sampai ${new Date(quota.premiumUntil).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                })}`}{" "}
+              · sisa hari ini <strong>{quota.remaining}</strong> dari {quota.limit}
+            </p>
+          ) : quota.remaining > 0 ? (
+            <p className="quota-badge">
+              Sisa kuota gratis hari ini: <strong>{quota.remaining}</strong> dari {quota.limit} ·{" "}
+              <Link href="/upgrade">Upgrade Premium</Link>
             </p>
           ) : (
             <p className="quota-badge quota-empty">
-              Kuota gratis hari ini habis ({quota.limit}/hari). Reset jam 00.00 WIB.
+              Kuota gratis hari ini habis ({quota.limit}/hari). Reset jam 00.00 WIB —{" "}
+              atau <Link href="/upgrade">upgrade Premium</Link> untuk 30 panduan/hari.
             </p>
           ))}
 
