@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getQuotaUsage } from "@/lib/quota";
 import { StudyGuideSchema } from "@/lib/schema";
 import { createClient } from "@/lib/supabase/server";
 
@@ -97,6 +98,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Silakan masuk dulu." }, { status: 401 });
   }
 
+  const quota = await getQuotaUsage(supabase, user.id);
+  if (quota.remaining <= 0) {
+    return NextResponse.json(
+      {
+        error: `Kuota gratis harianmu habis (${quota.limit} panduan/hari). Kuota di-reset jam 00.00 WIB — sampai jumpa besok!`,
+        quota,
+      },
+      { status: 429 }
+    );
+  }
+
   const formData = await req.formData();
   const file = formData.get("image");
   if (!(file instanceof File)) {
@@ -167,8 +179,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // Simpan ke riwayat. Kegagalan simpan tidak menggagalkan respons —
-    // panduan tetap dikirim ke user.
+    // Catat pemakaian (untuk kuota) dan simpan ke riwayat. Kegagalan di sini
+    // tidak menggagalkan respons — panduan tetap dikirim ke user.
+    const { error: usageError } = await supabase
+      .from("usage_events")
+      .insert({ user_id: user.id });
+    if (usageError) {
+      console.error("Gagal mencatat pemakaian:", usageError.message);
+    }
+
     const { error: insertError } = await supabase.from("guides").insert({
       user_id: user.id,
       judul: parsed.data.judul,

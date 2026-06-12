@@ -248,3 +248,13 @@ button.linklike {
 .history-item:hover {
   border-color: var(--accent);
 }
+
+.quota-badge {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.quota-empty {
+  color: #8a2f10;
+}
