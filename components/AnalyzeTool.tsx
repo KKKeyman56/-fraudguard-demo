@@ -98,7 +98,7 @@ export default function AnalyzeTool() {
 
   return (
     <main>
-      <h1>Belajarin</h1>
+      <h1><span aria-hidden="true">🦉</span> Belajarin</h1>
       <p className="tagline">
         Foto soal tugasmu — AI membuatkan panduan belajar: konsep, langkah pengerjaan, contoh
         serupa, dan latihan. Kamu yang mengerjakan, kami yang menemani paham.
