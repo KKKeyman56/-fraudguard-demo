@@ -24,8 +24,7 @@ export default function Landing() {
         </div>
 
         <div className="hero-mock" aria-hidden="true">
-          <div className="mock-line mock-title">Persamaan Linear Satu Variabel</div>
-          <div className="mock-tag">Semua jenjang: SD · SMP · SMA — semua mapel</div>
+          <div className="mock-title">Semua jenjang: SD · SMP · SMA — semua mapel</div>
           <div className="mock-section">✏️ Konsep Kunci</div>
           <div className="mock-line w80" />
           <div className="mock-line w95" />
