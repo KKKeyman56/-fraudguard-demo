@@ -541,3 +541,69 @@ body {
     background-attachment: scroll; /* fixed sering patah-patah di HP */
   }
 }
+
+/* ===== Penyesuaian layar HP ===== */
+@media (max-width: 640px) {
+  main {
+    padding: 24px 16px 56px;
+  }
+
+  /* Header: rapatkan, kecilkan, sembunyikan email biar tak meluber */
+  .topbar {
+    padding: 12px 16px 0;
+  }
+  .topbar nav {
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+  .user-email {
+    display: none;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 24px 0 16px;
+  }
+  .hero-sub {
+    font-size: 1rem;
+  }
+  .hero-mock {
+    padding: 18px 18px;
+  }
+
+  /* Tombol besar enak disentuh + selebar kartu */
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+    padding: 14px 20px;
+  }
+  .hero-cta {
+    width: 100%;
+  }
+
+  /* Seksi & kartu */
+  .section {
+    padding: 32px 0 8px;
+  }
+  .section-heading {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  .card {
+    padding: 18px;
+  }
+
+  /* Hasil panduan & PDF: cegah teks panjang melebihi layar */
+  .guide-meta,
+  li,
+  p {
+    overflow-wrap: anywhere;
+  }
+}
+
+.forgot-link {
+  margin-top: 10px;
+  text-align: right;
+  font-size: 0.9rem;
+}

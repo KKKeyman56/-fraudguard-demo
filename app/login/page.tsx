@@ -4,14 +4,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+type Mode = "masuk" | "daftar" | "lupa";
+
 export default function LoginPage() {
-  const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
+  const [mode, setMode] = useState<Mode>("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const router = useRouter();
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError(null);
+    setInfo(null);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,6 +28,20 @@ export default function LoginPage() {
     setInfo(null);
     const supabase = createClient();
     try {
+      if (mode === "lupa") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset`,
+        });
+        if (error) {
+          setError(terjemahkan(error.message));
+          return;
+        }
+        setInfo(
+          "Tautan reset kata sandi sudah dikirim ke email-mu. Buka email, klik tautannya, lalu buat kata sandi baru."
+        );
+        return;
+      }
+
       if (mode === "daftar") {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
@@ -45,14 +67,18 @@ export default function LoginPage() {
     }
   }
 
+  const judul = mode === "masuk" ? "Masuk" : mode === "daftar" ? "Daftar" : "Lupa Kata Sandi";
+  const taglineText =
+    mode === "masuk"
+      ? "Masuk untuk membuat panduan belajar dan menyimpan riwayatmu."
+      : mode === "daftar"
+        ? "Buat akun gratis — panduan belajarmu akan tersimpan otomatis."
+        : "Masukkan email akunmu. Kami kirim tautan untuk membuat kata sandi baru.";
+
   return (
     <main>
-      <h1>{mode === "masuk" ? "Masuk" : "Daftar"}</h1>
-      <p className="tagline">
-        {mode === "masuk"
-          ? "Masuk untuk membuat panduan belajar dan menyimpan riwayatmu."
-          : "Buat akun gratis — panduan belajarmu akan tersimpan otomatis."}
-      </p>
+      <h1>{judul}</h1>
+      <p className="tagline">{taglineText}</p>
 
       <div className="card">
         <form onSubmit={submit} className="auth-form">
@@ -64,24 +90,36 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="kamu@email.com"
+              autoComplete="email"
             />
           </label>
-          <label>
-            Kata sandi
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minimal 6 karakter"
-            />
-          </label>
+          {mode !== "lupa" && (
+            <label>
+              Kata sandi
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimal 6 karakter"
+                autoComplete={mode === "daftar" ? "new-password" : "current-password"}
+              />
+            </label>
+          )}
           <button type="submit" disabled={busy}>
             {busy && <span className="spinner" />}
-            {mode === "masuk" ? "Masuk" : "Daftar"}
+            {mode === "masuk" ? "Masuk" : mode === "daftar" ? "Daftar" : "Kirim Tautan Reset"}
           </button>
         </form>
+
+        {mode === "masuk" && (
+          <p className="forgot-link">
+            <button className="linklike" onClick={() => switchMode("lupa")}>
+              Lupa kata sandi?
+            </button>
+          </p>
+        )}
 
         {error && <div className="error">{error}</div>}
         {info && <div className="info">{info}</div>}
@@ -90,15 +128,22 @@ export default function LoginPage() {
           {mode === "masuk" ? (
             <>
               Belum punya akun?{" "}
-              <button className="linklike" onClick={() => setMode("daftar")}>
+              <button className="linklike" onClick={() => switchMode("daftar")}>
                 Daftar
+              </button>
+            </>
+          ) : mode === "daftar" ? (
+            <>
+              Sudah punya akun?{" "}
+              <button className="linklike" onClick={() => switchMode("masuk")}>
+                Masuk
               </button>
             </>
           ) : (
             <>
-              Sudah punya akun?{" "}
-              <button className="linklike" onClick={() => setMode("masuk")}>
-                Masuk
+              Ingat kata sandimu?{" "}
+              <button className="linklike" onClick={() => switchMode("masuk")}>
+                Kembali ke Masuk
               </button>
             </>
           )}
