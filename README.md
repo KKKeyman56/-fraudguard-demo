@@ -38,10 +38,30 @@ Buka http://localhost:3000.
 
 Siap di-deploy ke Vercel. Set environment variable `GROQ_API_KEY` di project settings. Route `analyze` butuh `maxDuration` tinggi (sudah diset 120 detik) karena analisis bisa memakan waktu.
 
+## Pembayaran (PayPal)
+
+Halaman `/upgrade` punya tombol **PayPal** untuk aktivasi premium otomatis
+(selain jalur kode aktivasi manual):
+
+```
+app/api/paypal/create-order   buat order PayPal (Orders v2)
+app/api/paypal/capture-order  capture + verifikasi ke API PayPal → aktifkan premium
+lib/paypal.ts                 helper OAuth + create/capture order (server-only)
+components/PaypalCheckout.tsx tombol PayPal di client (load SDK resmi)
+docs/sql/0002_paypal_payments.sql  tabel payments + fungsi grant_paid_premium
+```
+
+- Pembayaran diverifikasi di server (capture ke API PayPal), lalu premium
+  diaktifkan lewat fungsi DB `grant_paid_premium` yang **hanya** bisa dipanggil
+  service-role — pengguna tidak bisa mengaktifkan premium gratis.
+- Idempoten terhadap `capture id` (tabel `payments`), jadi tidak ada double-credit.
+- PayPal tidak mendukung IDR, jadi premium ditagih dalam USD (atur lewat env).
+- Env yang dibutuhkan: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (lihat `.env.example`).
+
 ## Roadmap (belum diimplementasikan)
 
-- Auth + riwayat panduan per user (Supabase)
-- Kuota gratis + langganan (billing)
+- Langganan berulang otomatis (PayPal Subscriptions)
 - Mode multi-halaman (beberapa foto sekaligus)
 
 ---
