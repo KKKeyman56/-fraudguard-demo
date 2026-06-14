@@ -38,30 +38,50 @@ Buka http://localhost:3000.
 
 Siap di-deploy ke Vercel. Set environment variable `GROQ_API_KEY` di project settings. Route `analyze` butuh `maxDuration` tinggi (sudah diset 120 detik) karena analisis bisa memakan waktu.
 
-## Pembayaran (PayPal)
+## Pembayaran (transfer bank + konfirmasi Telegram)
 
-Halaman `/upgrade` punya tombol **PayPal** untuk aktivasi premium otomatis
-(selain jalur kode aktivasi manual):
+Halaman `/upgrade` memakai transfer bank manual dengan konfirmasi lewat bot
+Telegram (selain jalur kode aktivasi):
 
 ```
-app/api/paypal/create-order   buat order PayPal (Orders v2)
-app/api/paypal/capture-order  capture + verifikasi ke API PayPal → aktifkan premium
-lib/paypal.ts                 helper OAuth + create/capture order (server-only)
-components/PaypalCheckout.tsx tombol PayPal di client (load SDK resmi)
-docs/sql/0002_paypal_payments.sql  tabel payments + fungsi grant_paid_premium
+components/BankTransfer.tsx        form: info rekening + upload bukti transfer
+app/api/payment/submit             simpan pesanan 'pending' + kirim bukti ke admin via Telegram
+app/api/telegram/webhook           terima tombol Setujui/Tolak → aktifkan premium
+lib/telegram.ts                    helper bot Telegram (server-only)
+docs/sql/0003_manual_payments.sql  tabel manual_payments (alur approval)
+docs/sql/0002_paypal_payments.sql  tabel payments + fungsi grant_paid_premium (dipakai ulang)
 ```
 
-- Pembayaran diverifikasi di server (capture ke API PayPal), lalu premium
-  diaktifkan lewat fungsi DB `grant_paid_premium` yang **hanya** bisa dipanggil
-  service-role — pengguna tidak bisa mengaktifkan premium gratis.
-- Idempoten terhadap `capture id` (tabel `payments`), jadi tidak ada double-credit.
-- PayPal tidak mendukung IDR, jadi premium ditagih dalam USD (atur lewat env).
-- Env yang dibutuhkan: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
-  `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (lihat `.env.example`).
+Alur:
+
+1. User transfer ke rekening, lalu unggah bukti + nama pengirim di website.
+2. Server menyimpan pesanan berstatus `pending` dan mengirim foto bukti ke admin
+   lewat bot Telegram dengan tombol **✅ Setujui / ❌ Tolak**.
+3. Admin menekan **Setujui** → webhook memverifikasi pengirimnya admin (cek chat id
+   + secret token), lalu mengaktifkan premium lewat `grant_paid_premium`
+   (idempoten, menumpuk seperti redeem kode).
+
+### Menyiapkan bot Telegram
+
+1. Buat bot di [@BotFather](https://t.me/BotFather) → dapat `TELEGRAM_BOT_TOKEN`.
+2. Ambil chat id admin dari [@userinfobot](https://t.me/userinfobot) →
+   `TELEGRAM_ADMIN_CHAT_ID`.
+3. Buat `TELEGRAM_WEBHOOK_SECRET` bebas (mis. `openssl rand -hex 16`).
+4. Daftarkan webhook (sekali, setelah deploy):
+
+   ```bash
+   curl "https://api.telegram.org/bot<TOKEN>/setWebhook" \
+     -d "url=https://<domain>/api/telegram/webhook" \
+     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+Env yang dibutuhkan: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
+`TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`, plus info rekening
+`NEXT_PUBLIC_BANK_*` (lihat `.env.example`).
 
 ## Roadmap (belum diimplementasikan)
 
-- Langganan berulang otomatis (PayPal Subscriptions)
+- Auto-match nominal unik supaya konfirmasi makin cepat
 - Mode multi-halaman (beberapa foto sekaligus)
 
 ---

@@ -227,6 +227,36 @@ button.linklike {
   color: #2c5e26;
 }
 
+.muted {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.bank-box {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 12px 0 18px;
+  background: var(--card);
+}
+
+.bank-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.bank-row:last-child {
+  border-bottom: none;
+}
+
+.bank-row span {
+  color: var(--muted);
+}
+
 .switch-mode {
   margin-top: 16px;
   color: var(--muted);
